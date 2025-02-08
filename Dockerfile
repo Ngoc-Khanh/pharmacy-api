@@ -3,41 +3,38 @@ FROM php:8.3-apache
 
 # Cài đặt các thư viện cần thiết
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    libonig-dev \
-    libxml2-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql mbstring xml
+    git unzip libpng-dev libonig-dev libxml2-dev \
+    libcurl4-openssl-dev pkg-config libssl-dev \
+    && docker-php-ext-install pdo mbstring exif pcntl bcmath gd
 
-# Cài đặt MongoDB PHP extension
-RUN pecl install mongodb && docker-php-ext-enable mongodb
+# Cài đặt MongoDB PHP Extension
+RUN pecl install mongodb && echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
 
 # Cài đặt Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
 # Thiết lập thư mục làm việc
+# Chỉnh Apache chạy từ thư mục public
 WORKDIR /var/www/html
-
-# Copy toàn bộ mã nguồn Laravel vào container
+# Copy code Laravel vào container
 COPY . .
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Cài đặt Laravel dependencies
+# Cài đặt các package Laravel
 RUN composer install --no-dev --optimize-autoloader
+# Sửa cấu hình Apache
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+RUN echo "<Directory /var/www/html/public>\n\
+    AllowOverride All\n\
+</Directory>" >> /etc/apache2/apache2.conf
 
-# Thiết lập quyền cho Laravel storage và bootstrap/cache
+# Phân quyền thư mục storage và bootstrap/cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Kích hoạt mod_rewrite của Apache (cần thiết cho Laravel)
+# Bật mod_rewrite để hỗ trợ Laravel
 RUN a2enmod rewrite
 
-# Mở cổng 80 (Apache)
+# Expose cổng 80 cho Apache
 EXPOSE 80
 
-# Chạy Apache khi container khởi động
+# Chạy Laravel server
 CMD ["apache2-foreground"]
