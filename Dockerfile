@@ -1,9 +1,7 @@
-FROM php:8.3.12-fpm
+# Sử dụng PHP 8.3 với Apache
+FROM php:8.3-apache
 
-# Set working directory
-WORKDIR /var/www
-
-# Install dependencies
+# Cài đặt các thư viện cần thiết
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -17,24 +15,29 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql mbstring xml
 
-# Install MongoDB extension
-RUN pecl install mongodb \
-    && docker-php-ext-enable mongodb
+# Cài đặt MongoDB PHP extension
+RUN pecl install mongodb && docker-php-ext-enable mongodb
 
-# Install Composer
+# Cài đặt Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy Laravel project files
+# Thiết lập thư mục làm việc
+WORKDIR /var/www/html
+
+# Copy toàn bộ mã nguồn Laravel vào container
 COPY . .
 
-# Install Laravel dependencies
+# Cài đặt Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Thiết lập quyền cho Laravel storage và bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expose port 9000
-EXPOSE 9000
+# Kích hoạt mod_rewrite của Apache (cần thiết cho Laravel)
+RUN a2enmod rewrite
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Mở cổng 80 (Apache)
+EXPOSE 80
+
+# Chạy Apache khi container khởi động
+CMD ["apache2-foreground"]
