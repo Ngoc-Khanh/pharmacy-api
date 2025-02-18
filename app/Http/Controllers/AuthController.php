@@ -15,15 +15,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 #[Prefix("v2/auth")]
 class AuthController extends Controller
 {
-    #[Get(uri: "/all", name: "auth.all")]
-    public function getAllUser()
-    {
-        $users = User::all();
-        return $this->json($users, 'Get all user successful', 200);
-    }
-
-
-    #[Post(uri: "/credentials", name: "auth.credentials")]
+    #[Post("/credentials", "auth.credentials")]
     public function login(Request $request)
     {
         $request->validate([
@@ -35,7 +27,7 @@ class AuthController extends Controller
             $accountField => $request->input('account'),
             'password' => $request->input('password')
         ];
-        if (!Auth::attempt($credentials)) return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!Auth::attempt($credentials)) return $this->fail([], "Invalid credentials", 401);
         $user = Auth::user();
         $token = JWTAuth::fromUser($user);
         $result = [
@@ -45,7 +37,7 @@ class AuthController extends Controller
         return $this->json($result, "Login successful");
     }
 
-    #[Post(uri: "/register", name: "auth.register")]
+    #[Post("/register", "auth.register")]
     public function register(Request $request)
     {
         $request->validate([
@@ -58,7 +50,6 @@ class AuthController extends Controller
             'email' => $request->input('email'),
             'password' => bcrypt($request->input('password')),
         ]);
-
         $token = JWTAuth::fromUser($user);
         $result = [
             'access_token' => $token,
@@ -67,20 +58,18 @@ class AuthController extends Controller
         return $this->json($result, 'Register successful', 201);
     }
 
-    #[Post(uri: "/refreshToken", name: "auth.refreshToken")]
+    #[Post("/refreshToken", "auth.refreshToken")]
     public function refreshToken(Request $request)
     {
         $token = JWTAuth::getToken();
         if (!$token) {
             return response()->json(['message' => 'Token not provided'], 400);
         }
-
         try {
             $newToken = JWTAuth::refresh($token);
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return response()->json(['message' => 'Invalid token'], 401);
         }
-
         $user = JWTAuth::setToken($newToken)->toUser();
         $result = [
             'access_token' => $newToken,
@@ -88,4 +77,15 @@ class AuthController extends Controller
         ];
         return $this->json($result, 'Refresh token successful');
     }
+
+    #[Get("/me", "auth.me", "jwt.auth")]
+    public function getProfile()
+    {
+        $token = JWTAuth::getToken();
+        if (!$token) return $this->fail([], 'Token not provided');
+        $user = JWTAuth::toUser($token);
+        return $this->json($user, 'Get profile successful');
+    }
+
+    
 }
