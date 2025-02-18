@@ -21,6 +21,7 @@ class User extends UserAuthModel implements JWTSubject
         'password',
         'email',
         'phone',
+        'dob',
         'address',
         'role',
         'status',
