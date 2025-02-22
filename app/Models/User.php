@@ -15,6 +15,7 @@ class User extends UserAuthModel implements JWTSubject
     protected $collection = 'users';
 
     protected $fillable = [
+        '_id',
         'firstname',
         'lastname',
         'username',
@@ -57,5 +58,10 @@ class User extends UserAuthModel implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'user_id', '_id');
     }
 }
