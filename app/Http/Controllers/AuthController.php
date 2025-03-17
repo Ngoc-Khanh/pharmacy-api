@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -64,5 +65,11 @@ class AuthController extends Controller
             'access_token' => $token,
             'user' => $user,
         ], 'Login successful');
+    }
+
+    #[Get("/me", "auth.me", "jwt.auth")]
+    public function me(Request $request)
+    {
+        return $this->json($request->user(), "User profile retrieved successfully");
     }
 }
