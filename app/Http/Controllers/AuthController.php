@@ -35,7 +35,7 @@ class AuthController extends Controller
             'first_name' => $request->get('first_name'),
             'last_name' => $request->get('last_name'),
             'phone' => $request->get('phone'),
-            'profile_image' => collect(['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jgp', '6.jpg'])->random(),
+            'profile_image' => collect(['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg'])->random(),
             'role' => 'customer',
             'status' => 'active',
         ]);
