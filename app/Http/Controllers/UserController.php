@@ -55,10 +55,9 @@ class UserController extends Controller
         }
         if (empty($addresses)) {
             $newAddress['is_default'] = true;
-        } 
-        elseif ($newAddress['is_default'] || ($request->has('is_default') && $request->is_default)) {
+        } elseif ($newAddress['is_default'] || ($request->has('is_default') && $request->is_default)) {
             $newAddress['is_default'] = true;
-            $addresses = array_map(function($address) {
+            $addresses = array_map(function ($address) {
                 $address['is_default'] = false;
                 return $address;
             }, $addresses);
@@ -66,8 +65,22 @@ class UserController extends Controller
         $addresses[] = $newAddress;
         $user->addresses = $addresses;
         $user->save();
-        
+
         return $this->json($newAddress, 'Address added successfully', 201);
+    }
+
+    #[Post("/set-default-address/{id}", "users.setDefaultAddress")]
+    public function setDefaultAddress(Request $request, string $id)
+    {
+        $user = $request->user();
+        $user->addresses = array_map(function ($address) use ($id) {
+            $address['is_default'] = $address['id'] === $id;
+            return $address;
+        }, $user->addresses);
+        $user->save();
+        
+        $defaultAddress = collect($user->addresses)->firstWhere('is_default', true);
+        return $this->json($defaultAddress, 'Default address set successfully', 200);
     }
 
     #[Delete("/delete-address/{id}", "users.deleteAddress")]
