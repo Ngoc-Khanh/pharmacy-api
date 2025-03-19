@@ -64,13 +64,12 @@ class UserController extends Controller
         return $this->json($newAddress, 'Address added successfully', 201);
     }
 
-    #[Delete("/delete-address", "users.deleteAddress")]
-    public function deleteAddress(Request $request)
+    #[Delete("/delete-address/{id}", "users.deleteAddress")]
+    public function deleteAddress(Request $request, string $id)
     {
         $user = $request->user();
-        $addressId = $request->address_id;
-        $user->addresses = array_filter($user->addresses, function ($address) use ($addressId) {
-            return $address['id'] !== $addressId;
+        $user->addresses = array_filter($user->addresses, function ($address) use ($id) {
+            return $address['id'] !== $id;
         });
         $user->save();
         return $this->json([], 'Address deleted successfully', 204);
