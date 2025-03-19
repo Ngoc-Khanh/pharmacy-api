@@ -43,15 +43,15 @@ class User extends UserModel implements JWTSubject
     protected function casts(): array
     {
         return [
-            'create_at' => 'datetime',
-            'update_at' => 'datetime',
-            'last_login_at' => 'datetime',
-            'dob' => 'datetime',
-            'addresses' => 'array',
-            'socialAccounts' => 'array',
-            'preferences' => 'array',
+            'created_at'        => 'datetime',
+            'updated_at'        => 'datetime',
+            'last_login_at'     => 'datetime',
+            'dob'               => 'datetime',
+            // 'addresses'         => 'array',
+            // 'social_accounts'   => 'array',
+            // 'preferences'       => 'array',
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            // 'password'          => 'hashed',
         ];
     }
 
