@@ -7,6 +7,7 @@ use App\Http\Requests\AddAddressRequest;
 use MongoDB\BSON\ObjectId;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
+use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
 
@@ -14,6 +15,13 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 #[Middleware("jwt.auth")]
 class UserController extends Controller
 {
+    #[Get("/addresses", "users.addresses")]
+    public function getAddresses(Request $request)
+    {
+        $user = $request->user();
+        return $this->json($user->addresses, 'Addresses retrieved successfully', 200);
+    }
+
     #[Post("/add-addresses", "users.addAddresses")]
     public function addAddress(AddAddressRequest $request)
     {
@@ -32,6 +40,18 @@ class UserController extends Controller
             'created_at'    => now(),
             'updated_at'    => now(),
         ];
+        if (isset($user->addresses) && !empty($user->addresses)) {
+            foreach ($user->addresses as $address) {
+                if (
+                    $address['address_line1'] === $newAddress['address_line1'] &&
+                    $address['city'] === $newAddress['city'] &&
+                    $address['country'] === $newAddress['country'] &&
+                    $address['postal_code'] === $newAddress['postal_code']
+                ) {
+                    return $this->fail([], 'Address already exists', 400);
+                }
+            }
+        }
         if (!isset($user->addresses) || empty($user->addresses)) {
             $newAddress['is_default'] = true;
         } elseif ($newAddress['is_default']) {
@@ -44,10 +64,15 @@ class UserController extends Controller
         return $this->json($newAddress, 'Address added successfully', 201);
     }
 
-    #[Get("/addresses", "users.addresses")]
-    public function getAddresses(Request $request)
+    #[Delete("/delete-address", "users.deleteAddress")]
+    public function deleteAddress(Request $request)
     {
         $user = $request->user();
-        return $this->json($user->addresses, 'Addresses retrieved successfully', 200);
+        $addressId = $request->address_id;
+        $user->addresses = array_filter($user->addresses, function ($address) use ($addressId) {
+            return $address['id'] !== $addressId;
+        });
+        $user->save();
+        return $this->json([], 'Address deleted successfully', 204);
     }
 }
