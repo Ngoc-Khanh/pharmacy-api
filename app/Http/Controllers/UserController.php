@@ -20,6 +20,8 @@ class UserController extends Controller
         $user = $request->user();
         $newAddress = [
             'id'            => (string) new \MongoDB\BSON\ObjectId(),
+            'name'          => $request->name,
+            'phone'         => $request->phone,
             'address_line1' => $request->address_line1,
             'address_line2' => $request->address_line2 ?? '',
             'city'          => $request->city,
@@ -39,7 +41,7 @@ class UserController extends Controller
         }
         $user->addresses = isset($user->addresses) ? array_merge($user->addresses, [$newAddress]) : [$newAddress];
         $user->save();
-        return $this->json($user, 'Address added successfully', 201);
+        return $this->json($newAddress, 'Address added successfully', 201);
     }
 
     #[Get("/addresses", "users.addresses")]
