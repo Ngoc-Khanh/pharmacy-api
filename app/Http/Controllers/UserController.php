@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Http\Requests\AddAddressRequest;
+use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
@@ -34,5 +36,12 @@ class UserController extends Controller
         $user->addresses = isset($user->addresses) ? array_merge($user->addresses, [$newAddress]) : [$newAddress];
         $user->save();
         return $this->json($user, 'Address added successfully', 201);
+    }
+
+    #[Get("/addresses", "users.addresses")]
+    public function getAddresses(Request $request)
+    {
+        $user = $request->user();
+        return $this->json($user->addresses, 'Addresses retrieved successfully', 200);
     }
 }
