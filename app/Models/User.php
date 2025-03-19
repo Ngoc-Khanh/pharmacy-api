@@ -47,10 +47,10 @@ class User extends UserModel implements JWTSubject
             'updated_at'        => 'datetime',
             'last_login_at'     => 'datetime',
             'dob'               => 'datetime',
+            'email_verified_at' => 'datetime',
             // 'addresses'         => 'array',
             // 'social_accounts'   => 'array',
             // 'preferences'       => 'array',
-            'email_verified_at' => 'datetime',
             // 'password'          => 'hashed',
         ];
     }
