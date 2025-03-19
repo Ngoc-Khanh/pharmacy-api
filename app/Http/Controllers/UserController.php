@@ -27,7 +27,7 @@ class UserController extends Controller
     {
         $user = $request->user();
         $newAddress = [
-            'id'            => (string) new \MongoDB\BSON\ObjectId(),
+            'id'            => (string) new ObjectId(),
             'name'          => $request->name,
             'phone'         => $request->phone,
             'address_line1' => $request->address_line1,
@@ -40,8 +40,9 @@ class UserController extends Controller
             'created_at'    => now(),
             'updated_at'    => now(),
         ];
-        if (isset($user->addresses) && !empty($user->addresses)) {
-            foreach ($user->addresses as $address) {
+        $addresses = $user->addresses ?? [];
+        if (!empty($addresses)) {
+            foreach ($addresses as $address) {
                 if (
                     $address['address_line1'] === $newAddress['address_line1'] &&
                     $address['city'] === $newAddress['city'] &&
@@ -52,15 +53,20 @@ class UserController extends Controller
                 }
             }
         }
-        if (!isset($user->addresses) || empty($user->addresses)) {
+        if (empty($addresses)) {
             $newAddress['is_default'] = true;
-        } elseif ($newAddress['is_default']) {
-            foreach ($user->addresses as &$address) {
+        } 
+        elseif ($newAddress['is_default'] || ($request->has('is_default') && $request->is_default)) {
+            $newAddress['is_default'] = true;
+            $addresses = array_map(function($address) {
                 $address['is_default'] = false;
-            }
+                return $address;
+            }, $addresses);
         }
-        $user->addresses = isset($user->addresses) ? array_merge($user->addresses, [$newAddress]) : [$newAddress];
+        $addresses[] = $newAddress;
+        $user->addresses = $addresses;
         $user->save();
+        
         return $this->json($newAddress, 'Address added successfully', 201);
     }
 
