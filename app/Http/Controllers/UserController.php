@@ -2,60 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\Middleware;
+use App\Http\Requests\AddAddressRequest;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
+use Spatie\RouteAttributes\Attributes\Middleware;
 
 #[Prefix("v2/users")]
 #[Middleware("jwt.auth")]
 class UserController extends Controller
 {
     #[Post("/addAddresses", "users.addAddresses")]
-    public function addAddresses(Request $request)
+    public function addAddress(AddAddressRequest $request)
     {
-        $userId = $request->user()->id;
-        $validator = Validator::make($request->all(), [
-            'addressLine1' => 'required|string',
-            'addressLine2' => 'nullable|string',
-            'city'         => 'required|string',
-            'state'        => 'nullable|string',
-            'country'      => 'required|string',
-            'postalCode'   => 'required|string',
-            'isDefault'    => 'nullable|boolean'
-        ]);
-        if ($validator->fails()) return $this->fail([], $validator->errors(), 422);
-        $user = User::find($userId);
-        if (!$user) return $this->fail([], "User not found", 404);
+        $user = $request->user();
         $newAddress = [
-            'addressLine1' => $request->addressLine1,
-            'addressLine2' => $request->addressLine2,
-            'city'         => $request->city,
-            'state'        => $request->state,
-            'country'      => $request->country,
-            'postalCode'   => $request->postalCode,
-            'isDefault'    => $request->has('isDefault') ? (bool)$request->isDefault : false
+            'address_line1' => $request->address_line1,
+            'address_line2' => $request->address_line2 ?? '',
+            'city' => $request->city,
+            'state' => $request->state ?? '',
+            'country' => $request->country,
+            'postal_code' => $request->postal_code,
+            'is_default' => $request->is_default ?? false,
         ];
-        if ($newAddress['isDefault']) {
-            if (isset($user->addresses) && is_array($user->addresses)) {
-                foreach ($user->addresses as &$address) {
-                    $address['isDefault'] = false;
-                }
-            }
-        } else {
-            if (empty($user->addresses)) {
-                $newAddress['isDefault'] = true;
+        if (!isset($user->addresses) || empty($user->addresses)) {
+            $newAddress['is_default'] = true;
+        } elseif ($newAddress['is_default']) {
+            foreach ($user->addresses as &$address) {
+                $address['is_default'] = false;
             }
         }
-        $addresses = $user->addresses ?? [];
-        $addresses[] = $newAddress;
-        $user->addresses = $addresses;
-        $user->updated_at = Carbon::now();
+        $user->addresses = isset($user->addresses) ? array_merge($user->addresses, [$newAddress]) : [$newAddress];
         $user->save();
-        return $this->json($newAddress, "Address added successfully", 201);
+        return $this->json($user, 'Address added successfully', 201);
     }
 }
