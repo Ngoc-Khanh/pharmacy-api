@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\AddAddressRequest;
+use Illuminate\Support\Facades\Auth;
 use MongoDB\BSON\ObjectId;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
@@ -16,6 +17,22 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 #[Middleware("jwt.auth")]
 class UserController extends Controller
 {
+    #[Patch("/update-profile", "users.updateProfile")]
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        /** @var \App\Models\User $user */
+        $user->fill($request->only([
+            'first_name',
+            'last_name',
+            'username',
+            'email',
+            'phone'
+        ]));
+        $user->save();
+        return $this->json($user, 'Profile updated successfully', 200);
+    }
+
     #[Get("/addresses", "users.addresses")]
     public function getAddresses(Request $request)
     {
