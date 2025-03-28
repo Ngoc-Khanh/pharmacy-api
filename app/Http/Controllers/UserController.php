@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\AddAddressRequest;
+use Cloudinary\Cloudinary;
 use Illuminate\Support\Facades\Auth;
 use MongoDB\BSON\ObjectId;
 use Spatie\RouteAttributes\Attributes\Get;
@@ -143,5 +144,27 @@ class UserController extends Controller
         });
         $user->save();
         return $this->json([], 'Address deleted successfully', 204);
+    }
+
+    #[Post("/upload-image-profile", "users.uploadImageProfile")]
+    public function uploadImageProfile(Request $request)
+    {
+        if (!$request->hasFile('profile_image')) return $this->fail([], 'No file uploaded',  400);
+        $request->validate([
+            'profile_image' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+        ]);
+        $uploadedFile = $request->file('profile_image');
+        $cloudinary = new Cloudinary();
+        $uploadFileUrl = $cloudinary->uploadApi()->upload($uploadedFile->getRealPath(), [
+            'folder' => 'profiles',
+        ])['secure_url'];
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user) return $this->fail([], 'User not found',  401);
+        $user->profile_image = $uploadFileUrl;
+        $user->save();
+        return $this->json([
+            'profile_image' => $uploadFileUrl,
+        ], 'Profile image uploaded successfully', 200);
     }
 }
