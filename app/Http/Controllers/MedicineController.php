@@ -10,7 +10,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Prefix('v2/medicine')]
 class MedicineController extends Controller
 {
-    #[Get('/list', "medicine.list")]
+    #[Get('/medicine-list', "medicine.list")]
     public function getAllMedicine()
     {
         $medicines = Medicine::with(['category', 'supplier'])->get()->makeHidden(['category_id', 'supplier_id', 'created_at', 'updated_at']);
