@@ -10,7 +10,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Prefix("v2/category")]
 class CategoryController extends Controller
 {
-    #[Get('/list', "category.list")]
+    #[Get('/category-list', "category.list")]
     public function getAllCategory()
     {
         $category = Category::all();
