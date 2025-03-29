@@ -14,7 +14,6 @@ class Medicine extends Model
     protected $collection = 'medicines';
 
     protected $fillable = [
-        'sku_id',
         'category_id',
         'supplier_id',
         'name',
@@ -23,7 +22,7 @@ class Medicine extends Model
         'thumbnail',
         'description',
         'variants',
-        'sub_data',
+        'ratings',
     ];
 
     protected static function boot()
@@ -38,5 +37,10 @@ class Medicine extends Model
     public function category()
     {
         return $this->belongsTo(Category::class, "category_id");
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, "supplier_id");
     }
 }
