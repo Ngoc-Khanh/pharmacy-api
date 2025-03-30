@@ -55,6 +55,11 @@ class User extends UserModel implements JWTSubject
         ];
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'user_id');
+    }
+
     public function setLocale($locale)
     {
         $this->locale = $locale;
