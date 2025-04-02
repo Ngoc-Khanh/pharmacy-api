@@ -11,7 +11,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 class MedicineController extends Controller
 {
     #[Get('/popular-medicine', "medicine.popular")]
-    public function getPopularMedicine() 
+    public function getPopularMedicine()
     {
         // Option 1: Get medicines with the highest purchase count
         $popularMedicines = Medicine::with(['category', 'supplier'])
@@ -20,23 +20,23 @@ class MedicineController extends Controller
             ->limit(4)
             ->get()
             ->makeHidden(['category_id', 'supplier_id', 'created_at', 'updated_at']);
-        
+
         // Option 2: Get medicines marked as popular (if you have a 'is_popular' field)
         // $popularMedicines = Medicine::with(['category', 'supplier'])
         //     ->where('is_popular', true)
         //     ->limit(4)
         //     ->get()
         //     ->makeHidden(['category_id', 'supplier_id', 'created_at', 'updated_at']);
-        
+
         // Clean up related data
         $popularMedicines->each(function ($medicine) {
             if ($medicine->category) $medicine->category->makeHidden(['created_at', 'updated_at']);
             if ($medicine->supplier) $medicine->supplier->makeHidden(['created_at', 'updated_at']);
         });
-        
+
         return $this->json($popularMedicines, 'Popular medicines fetched successfully', 200);
     }
-    
+
     #[Get('/medicine-list', "medicine.list")]
     public function getAllMedicine()
     {
@@ -46,5 +46,19 @@ class MedicineController extends Controller
             if ($medicine->supplier) $medicine->supplier->makeHidden(['created_at', 'updated_at']);
         });
         return $this->json($medicines, 'Medicines fetched successfully', 200);
+    }
+
+    #[Get('/detail/{medicineId}', "medicine.detail")]
+    public function getDetailMedicine($medicineId)
+    {
+        $medicine = Medicine::with(['category', 'supplier'])
+            ->find($medicineId)
+            ?->makeHidden(['category_id', 'supplier_id', 'created_at', 'updated_at']);
+        if ($medicine) {
+            $medicine->category?->makeHidden(['created_at', 'updated_at']);
+            $medicine->supplier?->makeHidden(['created_at', 'updated_at']);
+            return $this->json($medicine, 'Medicine fetched successfully', 200);
+        }
+        return $this->fail([], 'Medicine not found', 404);
     }
 }
