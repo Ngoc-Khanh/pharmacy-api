@@ -23,6 +23,8 @@ class Medicine extends Model
         'description',
         'variants',
         'ratings',
+        'details',
+        'usageguide',
     ];
 
     protected static function boot()

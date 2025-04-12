@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\AddAddressRequest;
+use App\Models\User;
 use Cloudinary\Cloudinary;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use MongoDB\BSON\ObjectId;
 use Spatie\RouteAttributes\Attributes\Get;
@@ -19,6 +21,46 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 #[Middleware("jwt.auth")]
 class UserController extends Controller
 {
+    #[Get("/admin/users-list", "users.adminUsersList")]
+    public function getAllUsers(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->role !== 'admin') return $this->fail([], 'Unauthorized', 401);
+        $users = User::all();
+        return $this->json($users, 'Users retrieved successfully', 200);
+    }
+
+    #[Post("/admin/add-users", "users.adminAddUsers")]
+    public function addUsers(Request $request)
+    {
+        $user = $request->user();
+        if ($user->role !== 'admin') return $this->fail([], 'Unauthorized', 401);
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|confirmed|min:8',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:255',
+            'role' => 'required|string|in:admin,pharmacist,user',
+            'status' => 'required|string|in:active,inactive,banned',
+        ]);
+        if ($validator->fails()) return $this->fail([], $validator->errors(), 422);
+        $user = User::create([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+            'profile_image' => null,
+            'role' => $request->role,
+            'status' => $request->status,
+            'addresses' => [],
+        ]);
+        return $this->json($user, 'User created successfully', 201);
+    }
+
     #[Patch("/update-profile", "users.updateProfile")]
     public function updateProfile(Request $request)
     {
