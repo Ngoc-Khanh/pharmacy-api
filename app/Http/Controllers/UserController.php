@@ -25,7 +25,7 @@ class UserController extends Controller
     public function getAllUsers(Request $request)
     {
         $user = $request->user();
-        if (!$user->role !== 'admin') return $this->fail([], 'Unauthorized', 401);
+        if (!$user->role === 'admin') return $this->fail([], 'Unauthorized', 401);
         $users = User::all();
         return $this->json($users, 'Users retrieved successfully', 200);
     }
@@ -34,7 +34,7 @@ class UserController extends Controller
     public function addUsers(Request $request)
     {
         $user = $request->user();
-        if ($user->role !== 'admin') return $this->fail([], 'Unauthorized', 401);
+        if (!in_array($user->role, ['admin', 'user'])) return $this->fail([], 'Unauthorized', 401);
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
@@ -42,11 +42,11 @@ class UserController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
-            'role' => 'required|string|in:admin,pharmacist,user',
+            'role' => 'required|string|in:admin,pharmacist,customer',
             'status' => 'required|string|in:active,inactive,banned',
         ]);
         if ($validator->fails()) return $this->fail([], $validator->errors(), 422);
-        $user = User::create([
+        $newUser = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'username' => $request->username,
@@ -58,7 +58,18 @@ class UserController extends Controller
             'status' => $request->status,
             'addresses' => [],
         ]);
-        return $this->json($user, 'User created successfully', 201);
+        return $this->json($newUser, 'User created successfully', 201);
+    }
+
+    #[Delete("/admin/delete-users/{id}", "users.adminDeleteUsers")]
+    public function deleteUsers(Request $request, string $id)
+    {
+        $user = $request->user();
+        if (!$user->role === 'admin') return $this->fail([], 'Unauthorized', 401);
+        $user = User::find($id);
+        if (!$user) return $this->fail([], 'User not found', 404);
+        $user->delete();
+        return $this->json([], 'User deleted successfully', 204);
     }
 
     #[Patch("/update-profile", "users.updateProfile")]
