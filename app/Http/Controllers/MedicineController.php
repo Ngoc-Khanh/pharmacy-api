@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Medicine;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Spatie\RouteAttributes\Attributes\Get;
+use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('v2/medicine')]
@@ -50,5 +53,29 @@ class MedicineController extends Controller
             return $this->json($medicine, 'Medicine fetched successfully', 200);
         }
         return $this->fail([], 'Medicine not found', 404);
+    }
+
+    #[Post('/admin/medicine/add-medicine-step-one', "medicine.add")]
+    public function addMedicineStepOne(Request $request)
+    {
+        if ($request->user()->role !== 'admin') return $this->fail([], 'Unauthorized', 401);
+        $validator = Validator::make($request->all(), [
+            'category_id' => 'required|string|max:255',
+            'supplier_id' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'priority' => 'required|integer|min:0',
+            'description' => 'required|string',
+            'profile_image.image_url' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+        if ($validator->fails()) return $this->fail([], $validator->errors(), 422);
+        $medicine = Medicine::create([
+            'category_id' => $request->category_id,
+            'supplier_id' => $request->supplier_id,
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'priority' => $request->priority,
+            'description' => $request->description,
+        ]);
+        return $this->json($medicine, 'Medicine added successfully', 200);
     }
 }

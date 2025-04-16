@@ -55,11 +55,16 @@ class AuthController extends Controller
         ]);
         if ($validator->fails()) return $this->fail([], $validator->errors()->first(), 422);
         $accountField = filter_var($request->input('account'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        $credentials = $request->only(['password']);
-        $credentials[$accountField] = $request->input('account');
+        $credentials = [
+            $accountField => $request->input('account'),
+            'password' => $request->input('password')
+        ];
         if (!Auth::attempt($credentials)) return $this->fail([], 'Invalid credentials', 401);
         $user = Auth::user();
+        if ($user->status !== 'active') return $this->fail([], 'Your account is inactive', 401);
         $user->last_login_at = Carbon::now();
+        /** @var User $user */
+        $user->save();
         $token = JWTAuth::fromUser($user);
         return $this->json([
             'access_token' => $token,
