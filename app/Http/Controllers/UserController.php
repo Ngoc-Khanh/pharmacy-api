@@ -61,6 +61,28 @@ class UserController extends Controller
         return $this->json($newUser, 'User created successfully', 201);
     }
 
+    #[Patch("/admin/update-user/{id}", "users.adminUpdateUser")]
+    public function updateUser(Request $request, string $id)
+    {
+        $user = $request->user();
+        if (!$user->role === 'admin') return $this->fail([], 'Unauthorized', 401);
+        $user = User::find($id);
+        if (!$user) return $this->fail([], 'User not found', 404);
+        $user->fill($request->only([
+            'first_name',
+            'last_name',
+            'username',
+            'email',
+            'password',
+            'phone',
+            'role',
+            'status',
+        ]));
+        if ($request->has('password')) $user->password = Hash::make($request->password);
+        $user->save();
+        return $this->json($user, 'User updated successfully', 200);
+    }
+
     #[Delete("/admin/delete-users/{id}", "users.adminDeleteUsers")]
     public function deleteUsers(Request $request, string $id)
     {
@@ -70,6 +92,18 @@ class UserController extends Controller
         if (!$user) return $this->fail([], 'User not found', 404);
         $user->delete();
         return $this->json([], 'User deleted successfully', 204);
+    }
+
+    #[Post("/admin/change-user-status/{id}", "users.adminChangeUserStatus")]
+    public function changeUserStatus(Request $request, string $id)
+    {
+        $user = $request->user();
+        if (!$user->role === 'admin') return $this->fail([], 'Unauthorized', 401);
+        $user = User::find($id);
+        if (!$user) return $this->fail([], 'User not found', 404);
+        $user->status = $request->status;
+        $user->save();
+        return $this->json($user, 'User status changed successfully', 200);
     }
 
     #[Patch("/update-profile", "users.updateProfile")]
