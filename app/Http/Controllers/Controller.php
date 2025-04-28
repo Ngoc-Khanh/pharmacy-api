@@ -5,6 +5,18 @@ namespace App\Http\Controllers;
 use App\Ultis\HttpResponse;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @OA\Info(
+ *     title="Pharmacity Store API - Medicines",
+ *     version="1.0.0",
+ *     description="API endpoints for medicine related operations"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Medicines",
+ *     description="Medicine management endpoints"
+ * )
+ */
 abstract class Controller
 {
     /**
