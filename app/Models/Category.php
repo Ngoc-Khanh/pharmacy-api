@@ -5,6 +5,17 @@ namespace App\Models;
 use Illuminate\Support\Str;
 use MongoDB\Laravel\Eloquent\Model;
 
+/**
+ * @OA\Schema(
+ *     schema="Category",
+ *     title="Category",
+ *     description="Category model",
+ *     @OA\Property(property="_id", type="string", example="60f1a5b0e5a4d12345678901"),
+ *     @OA\Property(property="name", type="string", example="Antibiotics"),
+ *     @OA\Property(property="slug", type="string", example="antibiotics"),
+ *     @OA\Property(property="description", type="string", example="Medications that destroy or slow down the growth of bacteria")
+ * )
+ */
 class Category extends Model
 {
     protected $connection = 'mongodb';
