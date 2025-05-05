@@ -1016,6 +1016,213 @@
                 ]
             }
         },
+        "/v1/admin/suppliers/add": {
+            "post": {
+                "tags": [
+                    "Supplier"
+                ],
+                "summary": "Thêm nhà cung cấp mới",
+                "description": "Tạo một nhà cung cấp mới trong hệ thống",
+                "operationId": "addSupplier",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "address",
+                                    "contact_phone",
+                                    "contact_email"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Tên nhà cung cấp",
+                                        "type": "string",
+                                        "example": "Công ty Dược phẩm XYZ"
+                                    },
+                                    "address": {
+                                        "description": "Địa chỉ nhà cung cấp",
+                                        "type": "string",
+                                        "example": "123 Đường ABC, Quận 1, TP.HCM"
+                                    },
+                                    "contact_phone": {
+                                        "description": "Số điện thoại liên hệ",
+                                        "type": "string",
+                                        "example": "0912345678"
+                                    },
+                                    "contact_email": {
+                                        "description": "Email liên hệ",
+                                        "type": "string",
+                                        "example": "contact@xyz-pharma.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "65f1b3fc5bce7125f4001ec2"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Công ty Dược phẩm XYZ"
+                                                },
+                                                "address": {
+                                                    "type": "string",
+                                                    "example": "123 Đường ABC, Quận 1, TP.HCM"
+                                                },
+                                                "contact_phone": {
+                                                    "type": "string",
+                                                    "example": "0912345678"
+                                                },
+                                                "contact_email": {
+                                                    "type": "string",
+                                                    "example": "contact@xyz-pharma.com"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Nhà cung cấp đã được tạo thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vui lòng điền đầy đủ thông tin"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không được phép truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không được phép truy cập"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không đủ quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền truy cập tính năng này"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/admin/users": {
             "get": {
                 "tags": [
@@ -1896,6 +2103,10 @@
         {
             "name": "Categories",
             "description": "Quản lý danh mục thuốc"
+        },
+        {
+            "name": "Supplier",
+            "description": "Quản lý nhà cung cấp"
         },
         {
             "name": "Users",

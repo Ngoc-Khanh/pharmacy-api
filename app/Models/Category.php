@@ -14,4 +14,9 @@ class Category extends Model
         'description',
         'created_at',
     ];
+
+    public function medicines()
+    {
+        return $this->hasMany(Medicine::class, "category_id");
+    }
 }
