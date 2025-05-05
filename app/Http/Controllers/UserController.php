@@ -20,7 +20,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
  */
 #[Prefix(prefix: "v1/admin/users")]
 #[Middleware(middleware: "jwt.auth")]
-class UsersController extends Controller
+class UserController extends Controller
 {
   /**
    * @OA\Get(
