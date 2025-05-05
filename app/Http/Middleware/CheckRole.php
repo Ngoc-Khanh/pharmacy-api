@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Enums\UserRole;
 
 class CheckRole
 {
@@ -19,7 +20,23 @@ class CheckRole
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         $user = \Illuminate\Support\Facades\Auth::user();
-        if (!$user || !in_array($user->role, $roles)) {
+        
+        // Kiểm tra user có tồn tại không
+        if (!$user) {
+            return response()->json([
+                'errors' => [[
+                    'status' => '401',
+                    'code' => 'UNAUTHORIZED',
+                    'title' => 'Chưa xác thực',
+                    'detail' => 'Bạn cần đăng nhập để truy cập tài nguyên này.'
+                ]]
+            ], 401);
+        }
+        
+        // So sánh giá trị của Enum (chuỗi) thay vì so sánh đối tượng Enum
+        $userRoleValue = $user->role->value;
+        
+        if (!in_array($userRoleValue, $roles)) {
             return response()->json([
                 'errors' => [[
                     'status' => '403',
@@ -29,6 +46,7 @@ class CheckRole
                 ]]
             ], 403);
         }
+        
         return $next($request);
     }
 }

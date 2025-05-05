@@ -198,7 +198,7 @@ class AuthController extends Controller
     if (!Auth::attempt($credentials)) return $this->fail(null, "Tài khoản hoặc mật khẩu không chính xác", 401);
     $user = Auth::user();
     // Check user status with match expression for cleaner code
-    if ($user->status !== UserStatus::ACTIVE->value) {
+    if ($user->status === UserStatus::PENDING->value || $user->status === UserStatus::SUSPENDED->value) {
       $message = match ($user->status) {
         UserStatus::PENDING->value => "Tài khoản chưa được kích hoạt",
         UserStatus::SUSPENDED->value => "Tài khoản đã bị khóa",
