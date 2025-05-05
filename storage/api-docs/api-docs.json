@@ -799,6 +799,171 @@
                     }
                 ]
             }
+        },
+        "/v1/admin/users/update/{id}": {
+            "patch": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Cập nhật thông tin người dùng",
+                "description": "Cập nhật chi tiết của một người dùng hiện có bằng ID của họ.",
+                "operationId": "updateUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của người dùng cần cập nhật",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "firstname": {
+                                        "description": "Tên của người dùng",
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "nullable": true
+                                    },
+                                    "lastname": {
+                                        "description": "Họ của người dùng",
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "nullable": true
+                                    },
+                                    "username": {
+                                        "description": "Tên đăng nhập duy nhất của người dùng",
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "minLength": 3,
+                                        "nullable": true
+                                    },
+                                    "email": {
+                                        "description": "Địa chỉ email duy nhất của người dùng",
+                                        "type": "string",
+                                        "format": "email",
+                                        "maxLength": 255,
+                                        "nullable": true
+                                    },
+                                    "password": {
+                                        "description": "Mật khẩu với ít nhất một chữ cái thường, một chữ cái hoa, một số và một ký tự đặc biệt",
+                                        "type": "string",
+                                        "minLength": 8,
+                                        "nullable": true
+                                    },
+                                    "password_confirmation": {
+                                        "description": "Xác nhận mật khẩu",
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "phone": {
+                                        "description": "Số điện thoại duy nhất của người dùng",
+                                        "type": "string",
+                                        "maxLength": 15,
+                                        "nullable": true
+                                    },
+                                    "role": {
+                                        "description": "Vai trò của người dùng",
+                                        "type": "string",
+                                        "enum": [
+                                            "customer",
+                                            "pharmacist",
+                                            "admin"
+                                        ],
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "description": "Trạng thái của người dùng",
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "suspended",
+                                            "pending"
+                                        ],
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật người dùng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "description": "Dữ liệu người dùng đã cập nhật",
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật người dùng thành công"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Người dùng không tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Người dùng không tồn tại"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Lỗi xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "description": "Lỗi xác thực",
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {

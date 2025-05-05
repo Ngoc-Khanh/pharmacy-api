@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
+use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
 
@@ -204,5 +205,99 @@ class UsersController extends Controller
       'status' => $request->input('status')
     ]);
     return $this->json($newUser, 'User created successfully', 201);
+  }
+
+  /**
+   * @OA\Patch(
+   *     path="/v1/admin/users/update/{id}",
+   *     operationId="updateUser",
+   *     tags={"Users"},
+   *     summary="Cập nhật thông tin người dùng",
+   *     description="Cập nhật chi tiết của một người dùng hiện có bằng ID của họ.",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(
+   *         name="id",
+   *         in="path",
+   *         description="ID của người dùng cần cập nhật",
+   *         required=true,
+   *         @OA\Schema(type="integer")
+   *     ),
+   *     @OA\RequestBody(
+   *         required=true,
+   *         @OA\JsonContent(
+   *             type="object",
+   *             @OA\Property(property="firstname", type="string", maxLength=255, nullable=true, description="Tên của người dùng"),
+   *             @OA\Property(property="lastname", type="string", maxLength=255, nullable=true, description="Họ của người dùng"),
+   *             @OA\Property(property="username", type="string", minLength=3, maxLength=255, nullable=true, description="Tên đăng nhập duy nhất của người dùng"),
+   *             @OA\Property(property="email", type="string", format="email", maxLength=255, nullable=true, description="Địa chỉ email duy nhất của người dùng"),
+   *             @OA\Property(property="password", type="string", minLength=8, nullable=true, description="Mật khẩu với ít nhất một chữ cái thường, một chữ cái hoa, một số và một ký tự đặc biệt"),
+   *             @OA\Property(property="password_confirmation", type="string", nullable=true, description="Xác nhận mật khẩu"),
+   *             @OA\Property(property="phone", type="string", maxLength=15, nullable=true, description="Số điện thoại duy nhất của người dùng"),
+   *             @OA\Property(property="role", type="string", enum={"customer", "pharmacist", "admin"}, nullable=true, description="Vai trò của người dùng"),
+   *             @OA\Property(property="status", type="string", enum={"active", "suspended", "pending"}, nullable=true, description="Trạng thái của người dùng")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Cập nhật người dùng thành công",
+   *         @OA\JsonContent(
+   *             type="object",
+   *             @OA\Property(property="data", type="object", description="Dữ liệu người dùng đã cập nhật"),
+   *             @OA\Property(property="message", type="string", example="Cập nhật người dùng thành công")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Người dùng không tồn tại",
+   *         @OA\JsonContent(
+   *             type="object",
+   *             @OA\Property(property="data", type="array", @OA\Items(type="string")),
+   *             @OA\Property(property="message", type="string", example="Người dùng không tồn tại")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=422,
+   *         description="Lỗi xác thực",
+   *         @OA\JsonContent(
+   *             type="object",
+   *             @OA\Property(property="data", type="object", description="Lỗi xác thực"),
+   *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ")
+   *         )
+   *     )
+   * )
+   */
+  #[Patch("/update/{id}", name: "admin.users.update")]
+  public function updateUser(Request $request, $id)
+  {
+    $user = User::find($id);
+    if (!$user) return $this->json([], "Người dùng không tồn tại", 404);
+    $validator = Validator::make($request->all(), [
+      'firstname' => 'nullable|string|max:255',
+      'lastname' => 'nullable|string|max:255',
+      'username' => 'nullable|string|min:3|max:255|unique:users,username,' . $id,
+      'email' => 'nullable|string|email|max:255|unique:users,email,' . $id,
+      'password' => [
+        'nullable',
+        'string',
+        'min:8',
+        'confirmed',
+        'regex:/[a-z]/',      // Ít nhất một chữ cái thường
+        'regex:/[A-Z]/',      // Ít nhất một chữ cái hoa
+        'regex:/[0-9]/',      // Ít nhất một số
+        'regex:/[@$!%*#?&]/', // Ít nhất một ký tự đặc biệt
+      ],
+      'phone' => 'nullable|string|max:15|unique:users,phone,' . $id,
+      'role' => 'nullable|string|in:customer,pharmacist,admin',
+      'status' => 'nullable|string|in:active,suspended,pending',
+    ]);
+    if ($validator->fails()) return $this->json($validator->errors(), "Dữ liệu không hợp lệ", 422);
+    $updateData = array_filter($request->only([
+      'firstname', 'lastname', 'username', 'email', 'password', 'phone', 'role', 'status'
+    ]), function ($value) {
+      return !is_null($value);
+    });
+    if (isset($updateData['password'])) $updateData['password'] = bcrypt($updateData['password']);
+    $user->update($updateData);
+    return $this->json($user, "Cập nhật người dùng thành công");
   }
 }
