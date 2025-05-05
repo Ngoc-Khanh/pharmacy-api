@@ -3,10 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -16,16 +19,18 @@ class User extends Authenticatable implements JWTSubject
     protected $collection = 'users';
 
     protected $fillable = [
-        'firstname',
-        'lastname',
+        'username',
+        'email',
         'username',
         'password',
-        'email',
+        'firstname',
+        'lastname',
         'phone',
-        'address',
+        'profile_image',
         'role',
         'status',
         'email_verified_at',
+        'addresses',
         'created_at',
     ];
 
@@ -39,6 +44,8 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
+            'status' => UserStatus::class,
         ];
     }
 
