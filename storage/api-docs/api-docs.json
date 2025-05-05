@@ -367,6 +367,143 @@
                 }
             }
         },
+        "/v1/admin/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Lấy danh sách danh mục",
+                "description": "Trả về danh sách tất cả danh mục trong hệ thống",
+                "operationId": "listCategories",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "_id": {
+                                                        "type": "string",
+                                                        "example": "65f1b3fc5bce7125f4001ec2"
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "example": "Thuốc kháng sinh"
+                                                    },
+                                                    "slug": {
+                                                        "type": "string",
+                                                        "example": "thuoc-khang-sinh"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "Các loại thuốc kháng sinh phổ biến"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Danh sách danh mục"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không được phép truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không được phép truy cập"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không đủ quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền truy cập tính năng này"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/admin/categories/create": {
             "post": {
                 "tags": [
@@ -774,6 +911,96 @@
                                         },
                                         "error": {
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/categories/delete/{id}": {
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Xóa danh mục",
+                "description": "Xóa một danh mục trong hệ thống",
+                "operationId": "deleteCategory",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của danh mục cần xóa",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Danh mục đã được xóa thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Danh mục không tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Danh mục không tồn tại"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
                                         }
                                     },
                                     "type": "object"
