@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Patch;
+use Spatie\RouteAttributes\Attributes\Delete;
+use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
 
@@ -20,6 +22,64 @@ use Spatie\RouteAttributes\Attributes\Middleware;
  */
 class CategoryController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/categories",
+     *     operationId="listCategories",
+     *     tags={"Categories"},
+     *     summary="Lấy danh sách danh mục",
+     *     description="Trả về danh sách tất cả danh mục trong hệ thống",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", 
+     *                @OA\Items(
+     *                    @OA\Property(property="_id", type="string", example="65f1b3fc5bce7125f4001ec2"),
+     *                    @OA\Property(property="title", type="string", example="Thuốc kháng sinh"),
+     *                    @OA\Property(property="slug", type="string", example="thuoc-khang-sinh"),
+     *                    @OA\Property(property="description", type="string", example="Các loại thuốc kháng sinh phổ biến"),
+     *                    @OA\Property(property="created_at", type="string", format="date-time"),
+     *                    @OA\Property(property="updated_at", type="string", format="date-time")
+     *                )
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Danh sách danh mục"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không được phép truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Không được phép truy cập"),
+     *             @OA\Property(property="status", type="integer", example=401),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không đủ quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập tính năng này"),
+     *             @OA\Property(property="status", type="integer", example=403),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     )  
+     * )
+     */
+    #[Get(uri: '/', name: 'category.list')]
+    public function listCategories()
+    {
+        return $this->json(Category::all(), 'Danh sách danh mục');
+    }
+
     /**
      * @OA\Post(
      *     path="/v1/admin/categories/create",
@@ -104,7 +164,7 @@ class CategoryController extends Controller
         ]);
         return $this->json($category, 'Danh mục đã được tạo thành công', 201);
     }
-    
+
     /**
      * @OA\Patch(
      *     path="/v1/admin/categories/update/{id}",
@@ -208,5 +268,53 @@ class CategoryController extends Controller
             'description' => $request->description,
         ]);
         return $this->json($category, 'Danh mục đã được cập nhật thành công', 200);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/v1/admin/categories/delete/{id}",
+     *     operationId="deleteCategory",
+     *     tags={"Categories"},
+     *     summary="Xóa danh mục",
+     *     description="Xóa một danh mục trong hệ thống",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của danh mục cần xóa",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Danh mục đã được xóa thành công"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Danh mục không tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Danh mục không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=404),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object", nullable=true)
+     *         )
+     *     ),
+     * )
+     */
+    #[Delete(uri: '/delete/{id}', name: 'category.delete')]
+    public function deleteCategory($id)
+    {
+        $category = Category::find($id);
+        if (!$category) return $this->fail(null, 'Danh mục không tồn tại', 404);
+        $category->delete();
+        return $this->json(null, 'Danh mục đã được xóa thành công', 200);
     }
 }
