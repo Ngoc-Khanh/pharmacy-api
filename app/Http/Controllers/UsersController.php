@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Patch;
@@ -17,8 +18,8 @@ use Spatie\RouteAttributes\Attributes\Middleware;
  *     description="Quản lý người dùng hệ thống"
  * )
  */
-#[Prefix("v1/admin/users")]
-#[Middleware(["jwt.auth", "role:admin,pharmacist"])]
+#[Prefix(prefix: "v1/admin/users")]
+#[Middleware(middleware: "jwt.auth")]
 class UsersController extends Controller
 {
   /**
@@ -75,10 +76,10 @@ class UsersController extends Controller
    *             @OA\Property(property="locale", type="string", example="vi_VN"),
    *             @OA\Property(property="error", type="object")
    *         )
-   *     )
+   *     )  
    * )
    */
-  #[Get("/", name: "admin.users.index")]
+  #[Get(uri: "/", name: "admin.users.index", middleware: ["role:admin,pharmacist"])]
   public function userList(Request $request)
   {
     $user = $request->user()->all();
@@ -170,7 +171,7 @@ class UsersController extends Controller
    *     )
    * )
    */
-  #[Post("/add", name: "admin.users.add")]
+  #[Post(uri: "/add", name: "admin.users.add", middleware: ["role:admin"])]
   public function addUser(Request $request)
   {
     $validator = Validator::make($request->all(), [
@@ -266,7 +267,7 @@ class UsersController extends Controller
    *     )
    * )
    */
-  #[Patch("/update/{id}", name: "admin.users.update")]
+  #[Patch(uri: "/update/{id}", name: "admin.users.update", middleware: ["role:admin,pharmacist"])]
   public function updateUser(Request $request, $id)
   {
     $user = User::find($id);
@@ -292,12 +293,89 @@ class UsersController extends Controller
     ]);
     if ($validator->fails()) return $this->json($validator->errors(), "Dữ liệu không hợp lệ", 422);
     $updateData = array_filter($request->only([
-      'firstname', 'lastname', 'username', 'email', 'password', 'phone', 'role', 'status'
+      'firstname',
+      'lastname',
+      'username',
+      'email',
+      'password',
+      'phone',
+      'role',
+      'status'
     ]), function ($value) {
       return !is_null($value);
     });
     if (isset($updateData['password'])) $updateData['password'] = bcrypt($updateData['password']);
     $user->update($updateData);
     return $this->json($user, "Cập nhật người dùng thành công");
+  }
+
+  /**
+   * @OA\Delete(
+   *     path="/v1/admin/users/delete/{id}",
+   *     operationId="deleteUser",
+   *     tags={"Users"},
+   *     summary="Xóa người dùng",
+   *     description="Xóa người dùng khỏi hệ thống theo ID",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(
+   *         name="id",
+   *         in="path",
+   *         description="ID của người dùng cần xóa",
+   *         required=true,
+   *         @OA\Schema(type="string")
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Xóa thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Xóa người dùng thành công"),
+   *             @OA\Property(property="status", type="integer", example=200),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object", nullable=true)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Không tìm thấy người dùng",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="array", @OA\Items()),
+   *             @OA\Property(property="message", type="string", example="Người dùng không tồn tại"),
+   *             @OA\Property(property="status", type="integer", example=404),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object", nullable=true)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=401,
+   *         description="Không được phép truy cập",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Không được phép truy cập"),
+   *             @OA\Property(property="status", type="integer", example=401),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=403,
+   *         description="Không đủ quyền truy cập",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập tính năng này"),
+   *             @OA\Property(property="status", type="integer", example=403),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     )
+   * )
+   */
+  #[Delete(uri: "/delete/{id}", name: "admin.users.delete", middleware: "role:admin")]
+  public function deleteUser($id)
+  {
+    $user = User::find($id);
+    if (!$user) return $this->json([], "Người dùng không tồn tại", 404);
+    $user->delete();
+    return $this->json(null, "Xóa người dùng thành công");
   }
 }
