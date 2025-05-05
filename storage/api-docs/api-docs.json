@@ -366,6 +366,439 @@
                     }
                 }
             }
+        },
+        "/v1/admin/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Lấy danh sách người dùng",
+                "description": "Trả về danh sách tất cả người dùng trong hệ thống",
+                "operationId": "getUserList",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "65f1b3fc5bce7125f4001ec2"
+                                                    },
+                                                    "username": {
+                                                        "type": "string",
+                                                        "example": "user1"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "user1@example.com"
+                                                    },
+                                                    "firstname": {
+                                                        "type": "string",
+                                                        "example": "Nguyen"
+                                                    },
+                                                    "lastname": {
+                                                        "type": "string",
+                                                        "example": "Van A"
+                                                    },
+                                                    "phone": {
+                                                        "type": "string",
+                                                        "example": "0901234567"
+                                                    },
+                                                    "profile_image": {
+                                                        "type": "string",
+                                                        "example": "1.jpg"
+                                                    },
+                                                    "role": {
+                                                        "type": "string",
+                                                        "example": "customer"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "active"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy danh sách người dùng thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không được phép truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không được phép truy cập"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không đủ quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền truy cập tính năng này"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/users/add": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Thêm người dùng mới",
+                "description": "Tạo một người dùng mới trong hệ thống",
+                "operationId": "addUser",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "role",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "firstname": {
+                                        "description": "Tên của người dùng",
+                                        "type": "string",
+                                        "example": "Nguyen"
+                                    },
+                                    "lastname": {
+                                        "description": "Họ của người dùng",
+                                        "type": "string",
+                                        "example": "Van A"
+                                    },
+                                    "username": {
+                                        "description": "Tên đăng nhập (độc nhất)",
+                                        "type": "string",
+                                        "example": "user1"
+                                    },
+                                    "email": {
+                                        "description": "Email người dùng (độc nhất)",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user1@example.com"
+                                    },
+                                    "password": {
+                                        "description": "Mật khẩu (ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt)",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "Password123!"
+                                    },
+                                    "password_confirmation": {
+                                        "description": "Xác nhận mật khẩu",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "Password123!"
+                                    },
+                                    "phone": {
+                                        "description": "Số điện thoại (độc nhất)",
+                                        "type": "string",
+                                        "example": "0901234567"
+                                    },
+                                    "role": {
+                                        "description": "Vai trò (customer/pharmacist/admin)",
+                                        "type": "string",
+                                        "example": "customer"
+                                    },
+                                    "status": {
+                                        "description": "Trạng thái tài khoản (active/suspended/pending)",
+                                        "type": "string",
+                                        "example": "active"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "65f1b3fc5bce7125f4001ec2"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "user1"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user1@example.com"
+                                                },
+                                                "firstname": {
+                                                    "type": "string",
+                                                    "example": "Nguyen"
+                                                },
+                                                "lastname": {
+                                                    "type": "string",
+                                                    "example": "Van A"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "0901234567"
+                                                },
+                                                "profile_image": {
+                                                    "type": "string",
+                                                    "example": "1.jpg"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "customer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User created successfully"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "username": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Tên đăng nhập đã tồn tại"
+                                                    }
+                                                },
+                                                "email": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Email đã được sử dụng"
+                                                    }
+                                                },
+                                                "password": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Mật khẩu phải có ít nhất 8 ký tự"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không được phép truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không được phép truy cập"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không đủ quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền truy cập tính năng này"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -494,6 +927,10 @@
         {
             "name": "Authentication",
             "description": "Các API xác thực người dùng"
+        },
+        {
+            "name": "Users",
+            "description": "Quản lý người dùng hệ thống"
         }
     ]
 }
