@@ -1016,6 +1016,153 @@
                 ]
             }
         },
+        "/api/v1/reviews/write": {
+            "post": {
+                "tags": [
+                    "Review"
+                ],
+                "summary": "Viết đánh giá",
+                "description": "Viết đánh giá cho sản phẩm",
+                "operationId": "writeReview",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "medicine_id",
+                                    "rating",
+                                    "comment"
+                                ],
+                                "properties": {
+                                    "medicine_id": {
+                                        "description": "ID của thuốc",
+                                        "type": "string",
+                                        "example": "1234567890"
+                                    },
+                                    "rating": {
+                                        "description": "Đánh giá từ 1-5 sao",
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "comment": {
+                                        "description": "Nội dung đánh giá",
+                                        "type": "string",
+                                        "example": "Sản phẩm rất tốt!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Đánh giá đã được thêm thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đánh giá đã được thêm thành công"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "507f1f77bcf86cd799439011"
+                                                },
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "example": "507f1f77bcf86cd799439012"
+                                                },
+                                                "medicine_id": {
+                                                    "type": "string",
+                                                    "example": "507f1f77bcf86cd799439013"
+                                                },
+                                                "rating": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "comment": {
+                                                    "type": "string",
+                                                    "example": "Sản phẩm rất tốt!"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Thông tin đánh giá không hợp lệ"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không có quyền truy cập"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/admin/suppliers": {
             "get": {
                 "tags": [
@@ -2643,6 +2790,10 @@
         {
             "name": "Categories",
             "description": "Quản lý danh mục thuốc"
+        },
+        {
+            "name": "Review",
+            "description": "Đánh giá sản phẩm"
         },
         {
             "name": "Supplier",
