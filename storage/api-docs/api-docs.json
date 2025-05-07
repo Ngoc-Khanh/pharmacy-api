@@ -1286,6 +1286,231 @@
                 ]
             }
         },
+        "/api/v1/admin/medicines/update/{id}": {
+            "patch": {
+                "tags": [
+                    "Medicines"
+                ],
+                "summary": "Cập nhật thông tin thuốc",
+                "description": "Cập nhật thông tin của một thuốc theo ID",
+                "operationId": "updateMedicine",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của thuốc cần cập nhật",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Thông tin thuốc cần cập nhật",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "category_id": {
+                                        "description": "ID danh mục",
+                                        "type": "string"
+                                    },
+                                    "supplier_id": {
+                                        "description": "ID nhà cung cấp",
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "description": "Tên thuốc",
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "description": "Mô tả thuốc",
+                                        "type": "string"
+                                    },
+                                    "variants": {
+                                        "properties": {
+                                            "price": {
+                                                "description": "Giá bán",
+                                                "type": "number"
+                                            },
+                                            "limit_quantity": {
+                                                "description": "Giới hạn số lượng",
+                                                "type": "integer"
+                                            },
+                                            "stock_status": {
+                                                "description": "Trạng thái tồn kho",
+                                                "type": "string",
+                                                "enum": [
+                                                    "IN-STOCK",
+                                                    "OUT-OF-STOCK",
+                                                    "PRE-ORDER"
+                                                ]
+                                            },
+                                            "original_price": {
+                                                "description": "Giá gốc",
+                                                "type": "number"
+                                            },
+                                            "discount_percent": {
+                                                "description": "Phần trăm giảm giá",
+                                                "type": "number"
+                                            },
+                                            "is_featured": {
+                                                "description": "Có phải sản phẩm nổi bật",
+                                                "type": "boolean"
+                                            },
+                                            "is_active": {
+                                                "description": "Trạng thái hoạt động",
+                                                "type": "boolean"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "details": {
+                                        "properties": {
+                                            "ingredients": {
+                                                "description": "Thành phần",
+                                                "type": "string"
+                                            },
+                                            "usage": {
+                                                "description": "Cách dùng",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "paramaters": {
+                                                "properties": {
+                                                    "origin": {
+                                                        "description": "Xuất xứ",
+                                                        "type": "string"
+                                                    },
+                                                    "packaging": {
+                                                        "description": "Quy cách đóng gói",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "usageguide": {
+                                        "properties": {
+                                            "dosage": {
+                                                "properties": {
+                                                    "adult": {
+                                                        "description": "Liều dùng cho người lớn",
+                                                        "type": "string"
+                                                    },
+                                                    "child": {
+                                                        "description": "Liều dùng cho trẻ em",
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "directions": {
+                                                "description": "Hướng dẫn sử dụng",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "precautions": {
+                                                "description": "Cảnh báo và thận trọng",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thuốc thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã cập nhật thuốc thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy thuốc",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy thuốc"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer_token": []
+                    }
+                ]
+            }
+        },
         "/api/admin/medicines/delete/{id}": {
             "delete": {
                 "tags": [
