@@ -15,6 +15,347 @@
         }
     ],
     "paths": {
+        "/v1/store/account/address/add": {
+            "post": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Thêm địa chỉ mới cho người dùng",
+                "description": "Thêm một địa chỉ mới vào danh sách địa chỉ của người dùng đã đăng nhập",
+                "operationId": "addAddress",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "phone",
+                                    "address_line_1",
+                                    "city",
+                                    "country",
+                                    "postal_code"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Tên người nhận",
+                                        "type": "string",
+                                        "example": "Nguyễn Văn A"
+                                    },
+                                    "phone": {
+                                        "description": "Số điện thoại",
+                                        "type": "string",
+                                        "example": "0901234567"
+                                    },
+                                    "address_line_1": {
+                                        "description": "Địa chỉ dòng 1",
+                                        "type": "string",
+                                        "example": "123 Đường Nguyễn Huệ"
+                                    },
+                                    "address_line_2": {
+                                        "description": "Địa chỉ dòng 2",
+                                        "type": "string",
+                                        "example": "Phường Bến Nghé"
+                                    },
+                                    "city": {
+                                        "description": "Quận/Huyện",
+                                        "type": "string",
+                                        "example": "Quận 1"
+                                    },
+                                    "state": {
+                                        "description": "Tỉnh/Thành phố",
+                                        "type": "string",
+                                        "example": "TP Hồ Chí Minh"
+                                    },
+                                    "country": {
+                                        "description": "Quốc gia",
+                                        "type": "string",
+                                        "example": "Việt Nam"
+                                    },
+                                    "postal_code": {
+                                        "description": "Mã bưu điện",
+                                        "type": "string",
+                                        "example": "700000"
+                                    },
+                                    "is_default": {
+                                        "description": "Đặt làm địa chỉ mặc định",
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Địa chỉ đã được thêm thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Nguyễn Văn A"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "0901234567"
+                                                },
+                                                "address_line_1": {
+                                                    "type": "string",
+                                                    "example": "123 Đường Nguyễn Huệ"
+                                                },
+                                                "address_line_2": {
+                                                    "type": "string",
+                                                    "example": "Phường Bến Nghé"
+                                                },
+                                                "city": {
+                                                    "type": "string",
+                                                    "example": "Quận 1"
+                                                },
+                                                "state": {
+                                                    "type": "string",
+                                                    "example": "TP Hồ Chí Minh"
+                                                },
+                                                "country": {
+                                                    "type": "string",
+                                                    "example": "Việt Nam"
+                                                },
+                                                "postal_code": {
+                                                    "type": "string",
+                                                    "example": "700000"
+                                                },
+                                                "is_default": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Địa chỉ đã được thêm thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Địa chỉ đã tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Địa chỉ đã tồn tại"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/auth/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Lấy thông tin người dùng đã đăng nhập",
+                "description": "Trả về thông tin chi tiết của người dùng hiện tại dựa trên JWT token",
+                "operationId": "getAuthenticatedUser",
+                "responses": {
+                    "200": {
+                        "description": "Lấy thông tin thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thông tin người dùng thành công"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "60a1f2e6a1b9a2c3d4e5f6g7"
+                                                },
+                                                "firstname": {
+                                                    "type": "string",
+                                                    "example": "Nguyen"
+                                                },
+                                                "lastname": {
+                                                    "type": "string",
+                                                    "example": "Van A"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "nguyenvana"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "nguyenvana@example.com"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "0987654321"
+                                                },
+                                                "profile_image": {
+                                                    "type": "string",
+                                                    "example": "3.jpg"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "customer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Người dùng không tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Người dùng không tồn tại"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/auth/register": {
             "post": {
                 "tags": [
@@ -3728,6 +4069,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Account",
+            "description": "Quản lý tài khoản của người dùng"
+        },
         {
             "name": "Authentication",
             "description": "Các API xác thực người dùng"

@@ -31,6 +31,61 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Prefix("v1/auth")]
 class AuthController extends Controller
 {
+  #[Get("/me", "auth.me")]
+  /**
+   * @OA\Get(
+   *     path="/v1/auth/me",
+   *     operationId="getAuthenticatedUser",
+   *     tags={"Authentication"},
+   *     summary="Lấy thông tin người dùng đã đăng nhập",
+   *     description="Trả về thông tin chi tiết của người dùng hiện tại dựa trên JWT token",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Response(
+   *         response=200,
+   *         description="Lấy thông tin thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=true),
+   *             @OA\Property(property="message", type="string", example="Lấy thông tin người dùng thành công"),
+   *             @OA\Property(property="data", type="object",
+   *                 @OA\Property(property="_id", type="string", example="60a1f2e6a1b9a2c3d4e5f6g7"),
+   *                 @OA\Property(property="firstname", type="string", example="Nguyen"),
+   *                 @OA\Property(property="lastname", type="string", example="Van A"),
+   *                 @OA\Property(property="username", type="string", example="nguyenvana"),
+   *                 @OA\Property(property="email", type="string", example="nguyenvana@example.com"),
+   *                 @OA\Property(property="phone", type="string", example="0987654321"),
+   *                 @OA\Property(property="profile_image", type="string", example="3.jpg"),
+   *                 @OA\Property(property="role", type="string", example="customer"),
+   *                 @OA\Property(property="status", type="string", example="active")
+   *             )
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Người dùng không tồn tại",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Người dùng không tồn tại"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=401,
+   *         description="Chưa xác thực",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Unauthenticated"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     )
+   * )
+   */
+  public function me()
+  {
+    $user = Auth::user();
+    if (!$user) return $this->fail(null, "Người dùng không tồn tại", 404);
+    return $this->json($user, "Lấy thông tin người dùng thành công", 200);
+  }
+
   /**
    * @OA\Post(
    *     path="/v1/auth/register",
