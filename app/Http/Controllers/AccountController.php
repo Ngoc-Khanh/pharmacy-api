@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
@@ -341,5 +342,156 @@ class AccountController extends Controller
         $user->addresses = $addresses;
         $user->save();
         return $this->json([], 'Địa chỉ đã được xóa thành công', 200);
+    }
+
+    #[Patch(uri: "/profile/update", name: "account.profile.update")]
+    /**
+     * @OA\Patch(
+     *     path="/v1/store/account/profile/update",
+     *     operationId="updateProfile",
+     *     tags={"Account"},
+     *     summary="Cập nhật thông tin tài khoản",
+     *     description="Cập nhật thông tin cá nhân của người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="username", type="string", example="user123"),
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="firstname", type="string", example="Nguyễn"),
+     *             @OA\Property(property="lastname", type="string", example="Văn A"),
+     *             @OA\Property(property="phone", type="string", example="0901234567")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="username", type="string", example="user123"),
+     *                 @OA\Property(property="email", type="string", example="user@example.com"),
+     *                 @OA\Property(property="firstname", type="string", example="Nguyễn"),
+     *                 @OA\Property(property="lastname", type="string", example="Văn A"),
+     *                 @OA\Property(property="phone", type="string", example="0901234567")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thông tin tài khoản thành công"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ"),
+     *             @OA\Property(property="status", type="integer", example=422),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function updateProfile(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'username' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255',
+            'firstname' => 'sometimes|string|max:255',
+            'lastname' => 'sometimes|string|max:255',
+            'phone' => 'sometimes|string|max:20'
+        ]);
+        if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
+        $user = $request->user();
+        $user->fill($request->only([
+            'username',
+            'email',
+            'firstname',
+            'lastname',
+            'phone'
+        ]));
+        if (!$user->isDirty()) return $this->json($user, 'Không có thông tin nào được thay đổi', 200);
+        $user->save();
+        return $this->json($user, 'Cập nhật thông tin tài khoản thành công', 200);
+    }
+
+    #[Patch(uri: "/profile/change-password", name: "account.profile.change-password")]
+    /**
+     * @OA\Patch(
+     *     path="/v1/store/account/profile/change-password",
+     *     operationId="changePassword",
+     *     tags={"Account"},
+     *     summary="Cập nhật mật khẩu tài khoản",
+     *     description="Cập nhật mật khẩu của người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"current_password", "new_password", "new_password_confirmation"},
+     *             @OA\Property(property="current_password", type="string", example="OldPassword123!"),
+     *             @OA\Property(property="new_password", type="string", example="NewPassword456@", description="Phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt"),
+     *             @OA\Property(property="new_password_confirmation", type="string", example="NewPassword456@")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật mật khẩu thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Cập nhật mật khẩu thành công"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Mật khẩu hiện tại không chính xác",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Mật khẩu hiện tại không chính xác"),
+     *             @OA\Property(property="status", type="integer", example=401),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Mật khẩu mới phải có ít nhất 8 ký tự"),
+     *             @OA\Property(property="status", type="integer", example=422),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string|min:8',
+            'new_password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/[a-z]/',      // Ít nhất một chữ cái thường
+                'regex:/[A-Z]/',      // Ít nhất một chữ cái hoa
+                'regex:/[0-9]/',      // Ít nhất một số
+                'regex:/[@$!%*#?&]/', // Ít nhất một ký tự đặc biệt
+            ],
+        ]);
+        if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
+        $user = $request->user();
+        if (!Hash::check($request->current_password, $user->password)) {
+            return $this->fail(null, 'Mật khẩu hiện tại không chính xác', 401);
+        }
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+        return $this->json(null, 'Cập nhật mật khẩu thành công', 200);
     }
 }

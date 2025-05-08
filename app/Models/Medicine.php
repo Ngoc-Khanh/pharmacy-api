@@ -42,4 +42,9 @@ class Medicine extends Model
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'medicine_id');
+    }
 }
