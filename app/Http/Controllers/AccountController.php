@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Prefix;
@@ -92,7 +91,8 @@ class AccountController extends Controller
      * )
      */
     #[Post(uri: "/address/add", name: "account.addresses.add")]
-    public function addAddress(Request $request) {
+    public function addAddress(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:15',
@@ -105,7 +105,7 @@ class AccountController extends Controller
             'is_default' => 'nullable|boolean',
         ]);
         if ($validator->fails()) return $this->fail($validator->errors(), 'Validation failed', 422);
-        $user = Auth::user();
+        $user = $request->user();
         $addresses = $user->addresses ?? [];
         $newAddress = [
             'id' => Str::uuid()->toString(),
@@ -140,8 +140,112 @@ class AccountController extends Controller
         }
         $addresses[] = $newAddress;
         $user->addresses = $addresses;
-        /** @var User $user */
         $user->save();
         return $this->json($newAddress, 'Địa chỉ đã được thêm thành công', 201);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/v1/store/account/address/update/{id}",
+     *     operationId="updateUserAddress",
+     *     tags={"Account"},
+     *     summary="Cập nhật địa chỉ của người dùng",
+     *     description="Cập nhật thông tin địa chỉ đã tồn tại của người dùng",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ cần cập nhật",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Nguyễn Văn A", description="Tên người nhận"),
+     *             @OA\Property(property="phone", type="string", example="0901234567", description="Số điện thoại"),
+     *             @OA\Property(property="address_line_1", type="string", example="123 Đường ABC", description="Địa chỉ dòng 1"),
+     *             @OA\Property(property="address_line_2", type="string", example="Tầng 2", description="Địa chỉ dòng 2"),
+     *             @OA\Property(property="city", type="string", example="Hồ Chí Minh", description="Thành phố"),
+     *             @OA\Property(property="state", type="string", example="", description="Tỉnh/Bang"),
+     *             @OA\Property(property="country", type="string", example="Việt Nam", description="Quốc gia"),
+     *             @OA\Property(property="postal_code", type="string", example="700000", description="Mã bưu điện"),
+     *             @OA\Property(property="is_default", type="boolean", example=true, description="Đặt làm địa chỉ mặc định")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật địa chỉ thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
+     *                 @OA\Property(property="phone", type="string", example="0901234567"),
+     *                 @OA\Property(property="address_line_1", type="string", example="123 Đường ABC"),
+     *                 @OA\Property(property="address_line_2", type="string", example="Tầng 2"),
+     *                 @OA\Property(property="city", type="string", example="Hồ Chí Minh"),
+     *                 @OA\Property(property="state", type="string", example=""),
+     *                 @OA\Property(property="country", type="string", example="Việt Nam"),
+     *                 @OA\Property(property="postal_code", type="string", example="700000"),
+     *                 @OA\Property(property="is_default", type="boolean", example=true)
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Cập nhật địa chỉ thành công"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null", example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy địa chỉ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null", example=null),
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy địa chỉ"),
+     *             @OA\Property(property="status", type="integer", example=404),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="array", @OA\Items(type="string"), example={})
+     *         )
+     *     )
+     * )
+     */
+    #[Patch(uri: "/address/update/{id}", name: "account.addresses.update")]
+    public function updateAddress(Request $request, $id)
+    {
+        $user = $request->user();
+        $addresses = $user->addresses ?? [];
+        $addressIndex = null;
+        $updatedAddress = null;
+        // Tìm địa chỉ cần cập nhật
+        foreach ($addresses as $index => $address) {
+            if ($address['id'] === $id) {
+                $addressIndex = $index;
+                $updatedAddress = $address;
+                break;
+            }
+        }
+        if ($updatedAddress === null) return $this->fail([], 'Không tìm thấy địa chỉ', 404);
+        $fieldsToUpdate = [
+            'name',
+            'phone',
+            'address_line_1',
+            'address_line_2',
+            'city',
+            'state',
+            'country',
+            'postal_code'
+        ];
+        foreach ($fieldsToUpdate as $field) {
+            if ($request->has($field)) $addresses[$addressIndex][$field] = $request->$field;
+        }
+        // Xử lý địa chỉ mặc định
+        if ($request->has('is_default') && $request->is_default) {
+            foreach ($addresses as &$addr) {
+                $addr['is_default'] = false;
+            }
+            $addresses[$addressIndex]['is_default'] = true;
+        }
+        $user->addresses = $addresses;
+        $user->save();
+        return $this->json($addresses[$addressIndex], 'Cập nhật địa chỉ thành công', 200);
     }
 }

@@ -26,7 +26,7 @@ class ReviewController extends Controller
     #[Get("/", name: 'review.index')]
     /**
      * @OA\Get(
-     *     path="/api/v1/reviews",
+     *     path="/v1/reviews",
      *     operationId="getReviewList",
      *     tags={"Review"},
      *     summary="Lấy danh sách đánh giá",
@@ -61,7 +61,7 @@ class ReviewController extends Controller
     #[Post('/write', name: 'review.write', middleware: "jwt.auth")]
     /**
      * @OA\Post(
-     *     path="/api/v1/reviews/write",
+     *     path="/v1/reviews/write",
      *     tags={"Review"},
      *     summary="Viết đánh giá",
      *     description="Viết đánh giá cho sản phẩm",
@@ -135,7 +135,7 @@ class ReviewController extends Controller
     #[Patch('/update/{id}', name: 'review.update', middleware: "jwt.auth")]
     /**
      * @OA\Patch(
-     *     path="/api/v1/reviews/update/{id}",
+     *     path="/v1/reviews/update/{id}",
      *     tags={"Review"},
      *     summary="Cập nhật đánh giá",
      *     description="Cập nhật đánh giá sản phẩm (chỉ tác giả mới có quyền cập nhật)",
@@ -227,7 +227,7 @@ class ReviewController extends Controller
     #[Delete('/delete/{id}', name: 'review.delete', middleware: "jwt.auth")]
     /**
      * @OA\Delete(
-     *     path="/api/v1/reviews/delete/{id}",
+     *     path="/v1/reviews/delete/{id}",
      *     tags={"Review"},
      *     summary="Xóa đánh giá",
      *     description="Xóa đánh giá sản phẩm (chỉ tác giả mới có quyền xóa)",

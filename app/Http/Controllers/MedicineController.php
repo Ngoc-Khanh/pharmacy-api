@@ -27,7 +27,7 @@ class MedicineController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/v1/admin/medicines",
+     *     path="/v1/admin/medicines",
      *     summary="Lấy danh sách thuốc",
      *     description="Truy xuất tất cả các thuốc cùng với thông tin danh mục và nhà cung cấp liên quan",
      *     operationId="listMedicine",
@@ -66,7 +66,7 @@ class MedicineController extends Controller
     #[Post(uri: '/add', name: 'admin.medicines.add')]
     /**
      * @OA\Post(
-     *     path="/api/v1/admin/medicines/add",
+     *     path="/v1/admin/medicines/add",
      *     summary="Thêm thuốc mới",
      *     description="Tạo một sản phẩm thuốc mới với thông tin chi tiết",
      *     operationId="addMedicine",
@@ -208,7 +208,7 @@ class MedicineController extends Controller
     #[Patch(uri: '/update/{id}', name: 'admin.medicines.update')]
     /**
      * @OA\Patch(
-     *     path="/api/v1/admin/medicines/update/{id}",
+     *     path="/v1/admin/medicines/update/{id}",
      *     summary="Cập nhật thông tin thuốc",
      *     description="Cập nhật thông tin của một thuốc theo ID",
      *     operationId="updateMedicine",
@@ -346,7 +346,7 @@ class MedicineController extends Controller
     #[Delete('/delete/{id}', name: 'admin.medicines.delete')]
     /**
      * @OA\Delete(
-     *     path="/api/admin/medicines/delete/{id}",
+     *     path="/v1/admin/medicines/delete/{id}",
      *     summary="Xóa một thuốc",
      *     description="Xóa một thuốc theo ID",
      *     operationId="deleteMedicine",
