@@ -28,6 +28,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Đảm bảo route cho Swagger được tải
     }
 }

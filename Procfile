@@ -1,1 +1,1 @@
-web: vendor/bin/heroku-php-apache2 public/
+web: mkdir -p storage/api-docs && chmod -R 777 storage && php artisan l5-swagger:generate && vendor/bin/heroku-php-apache2 public/
