@@ -15,6 +15,91 @@
         }
     ],
     "paths": {
+        "/v1/store/account/address": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Lấy danh sách địa chỉ của người dùng",
+                "description": "Trả về danh sách tất cả địa chỉ của người dùng đã đăng nhập",
+                "operationId": "getAddressList",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Nguyễn Văn A"
+                                                    },
+                                                    "phone": {
+                                                        "type": "string",
+                                                        "example": "0901234567"
+                                                    },
+                                                    "address_line_1": {
+                                                        "type": "string",
+                                                        "example": "123 Đường Nguyễn Huệ"
+                                                    },
+                                                    "address_line_2": {
+                                                        "type": "string",
+                                                        "example": "Phường Bến Nghé"
+                                                    },
+                                                    "city": {
+                                                        "type": "string",
+                                                        "example": "Quận 1"
+                                                    },
+                                                    "state": {
+                                                        "type": "string",
+                                                        "example": "TP Hồ Chí Minh"
+                                                    },
+                                                    "country": {
+                                                        "type": "string",
+                                                        "example": "Việt Nam"
+                                                    },
+                                                    "postal_code": {
+                                                        "type": "string",
+                                                        "example": "700000"
+                                                    },
+                                                    "is_default": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Danh sách địa chỉ"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/account/address/add": {
             "post": {
                 "tags": [
@@ -408,6 +493,96 @@
                                                 "type": "string"
                                             },
                                             "example": []
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/store/account/address/delete/{id}": {
+            "delete": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Xóa địa chỉ của người dùng",
+                "description": "Xóa một địa chỉ từ danh sách địa chỉ của người dùng đã đăng nhập",
+                "operationId": "deleteAddress",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của địa chỉ cần xóa",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Địa chỉ đã được xóa thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {},
+                                            "example": []
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Địa chỉ đã được xóa thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy địa chỉ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy địa chỉ"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
                                         }
                                     },
                                     "type": "object"

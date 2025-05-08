@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Spatie\RouteAttributes\Attributes\Delete;
+use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Prefix;
@@ -21,6 +23,47 @@ use Spatie\RouteAttributes\Attributes\Middleware;
  */
 class AccountController extends Controller
 {
+    #[Get(uri: "/address", name: "account.addresses.index")]
+    /**
+     * @OA\Get(
+     *     path="/v1/store/account/address",
+     *     operationId="getAddressList",
+     *     tags={"Account"},
+     *     summary="Lấy danh sách địa chỉ của người dùng",
+     *     description="Trả về danh sách tất cả địa chỉ của người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", 
+     *                @OA\Items(
+     *                    @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                    @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
+     *                    @OA\Property(property="phone", type="string", example="0901234567"),
+     *                    @OA\Property(property="address_line_1", type="string", example="123 Đường Nguyễn Huệ"),
+     *                    @OA\Property(property="address_line_2", type="string", example="Phường Bến Nghé"),
+     *                    @OA\Property(property="city", type="string", example="Quận 1"),
+     *                    @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
+     *                    @OA\Property(property="country", type="string", example="Việt Nam"),
+     *                    @OA\Property(property="postal_code", type="string", example="700000"),
+     *                    @OA\Property(property="is_default", type="boolean", example=true)
+     *                )
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Danh sách địa chỉ"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     )
+     * )
+     */
+    public function addressesList()
+    {
+        $user = request()->user();
+        $addresses = $user->addresses ?? [];
+        return $this->json($addresses, 'Danh sách địa chỉ', 200);
+    }
+
+    #[Post(uri: "/address/add", name: "account.addresses.add")]
     /**
      * @OA\Post(
      *     path="/v1/store/account/address/add",
@@ -90,7 +133,6 @@ class AccountController extends Controller
      *     )
      * )
      */
-    #[Post(uri: "/address/add", name: "account.addresses.add")]
     public function addAddress(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -144,6 +186,7 @@ class AccountController extends Controller
         return $this->json($newAddress, 'Địa chỉ đã được thêm thành công', 201);
     }
 
+    #[Patch(uri: "/address/update/{id}", name: "account.addresses.update")]
     /**
      * @OA\Patch(
      *     path="/v1/store/account/address/update/{id}",
@@ -208,7 +251,6 @@ class AccountController extends Controller
      *     )
      * )
      */
-    #[Patch(uri: "/address/update/{id}", name: "account.addresses.update")]
     public function updateAddress(Request $request, $id)
     {
         $user = $request->user();
@@ -247,5 +289,57 @@ class AccountController extends Controller
         $user->addresses = $addresses;
         $user->save();
         return $this->json($addresses[$addressIndex], 'Cập nhật địa chỉ thành công', 200);
+    }
+
+    #[Delete(uri: "/address/delete/{id}", name: "account.addresses.delete")]
+    /**
+     * @OA\Delete(
+     *     path="/v1/store/account/address/delete/{id}",
+     *     operationId="deleteAddress",
+     *     tags={"Account"},
+     *     summary="Xóa địa chỉ của người dùng",
+     *     description="Xóa một địa chỉ từ danh sách địa chỉ của người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ cần xóa",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Địa chỉ đã được xóa thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(), example={}),
+     *             @OA\Property(property="message", type="string", example="Địa chỉ đã được xóa thành công"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy địa chỉ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy địa chỉ"),
+     *             @OA\Property(property="status", type="integer", example=404),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     )
+     * )
+     */
+    public function deleteAddress($id)
+    {
+        $user = request()->user();
+        $addresses = $user->addresses ?? [];
+        $addresses = array_filter($addresses, function ($address) use ($id) {
+            return $address['id'] !== $id;
+        });
+        $user->addresses = $addresses;
+        $user->save();
+        return $this->json([], 'Địa chỉ đã được xóa thành công', 200);
     }
 }
