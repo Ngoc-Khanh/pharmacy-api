@@ -15,6 +15,132 @@
         }
     ],
     "paths": {
+        "/v1/auth/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Lấy thông tin người dùng đã đăng nhập",
+                "description": "Trả về thông tin chi tiết của người dùng hiện tại dựa trên JWT token",
+                "operationId": "getAuthenticatedUser",
+                "responses": {
+                    "200": {
+                        "description": "Lấy thông tin thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thông tin người dùng thành công"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "60a1f2e6a1b9a2c3d4e5f6g7"
+                                                },
+                                                "firstname": {
+                                                    "type": "string",
+                                                    "example": "Nguyen"
+                                                },
+                                                "lastname": {
+                                                    "type": "string",
+                                                    "example": "Van A"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "nguyenvana"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "nguyenvana@example.com"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "0987654321"
+                                                },
+                                                "profile_image": {
+                                                    "type": "string",
+                                                    "example": "3.jpg"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "customer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Người dùng không tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Người dùng không tồn tại"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/auth/register": {
             "post": {
                 "tags": [
