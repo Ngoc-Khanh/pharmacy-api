@@ -15,7 +15,7 @@
         }
     ],
     "paths": {
-        "/v1/store/account/address": {
+        "/v1/store/account/addresses": {
             "get": {
                 "tags": [
                     "Account"
@@ -100,7 +100,7 @@
                 ]
             }
         },
-        "/v1/store/account/address/add": {
+        "/v1/store/account/addresses/add": {
             "post": {
                 "tags": [
                     "Account"
@@ -315,7 +315,7 @@
                 ]
             }
         },
-        "/v1/store/account/address/update/{id}": {
+        "/v1/store/account/addresses/update/{id}": {
             "patch": {
                 "tags": [
                     "Account"
@@ -508,7 +508,7 @@
                 ]
             }
         },
-        "/v1/store/account/address/delete/{id}": {
+        "/v1/store/account/addresses/delete/{id}": {
             "delete": {
                 "tags": [
                     "Account"
@@ -856,6 +856,155 @@
                                         },
                                         "error": {
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/store/account/carts/add": {
+            "post": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Thêm sản phẩm vào giỏ hàng",
+                "description": "Thêm một sản phẩm thuốc vào giỏ hàng của người dùng",
+                "operationId": "addToCart",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "medicine_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "medicine_id": {
+                                        "type": "string",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Thêm vào giỏ hàng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã thêm sản phẩm vào giỏ hàng"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "medicine_id": {
+                                                                "type": "string",
+                                                                "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00.000000Z"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-01-01T00:00:00.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy thuốc",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy thuốc"
+                                        },
+                                        "data": {
+                                            "type": "null"
                                         }
                                     },
                                     "type": "object"
