@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Medicine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
@@ -23,6 +24,47 @@ use Spatie\RouteAttributes\Attributes\Middleware;
  */
 class OrderController extends Controller
 {
+    #[Get(uri: "/store/orders", name: "store.orders")]
+    /**
+     * @OA\Get(
+     *     path="/v1/store/orders",
+     *     operationId="getOrders",
+     *     tags={"Orders"},
+     *     summary="Lấy danh sách đơn hàng của người dùng",
+     *     description="Trả về danh sách tất cả đơn hàng của người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", 
+     *                @OA\Items(
+     *                    @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                    @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                    @OA\Property(property="status", type="string", example="pending"),
+     *                    @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                    @OA\Property(property="sub_total", type="number", example=30000),
+     *                    @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                    @OA\Property(property="discount", type="number", example=0),
+     *                    @OA\Property(property="total_price", type="number", example=45000),
+     *                    @OA\Property(property="shipping_address", type="object"),
+     *                    @OA\Property(property="payment_method", type="string", example="cod"),
+     *                    @OA\Property(property="created_at", type="string", format="date-time", example="2023-06-15T14:30:00Z")
+     *                )
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy danh sách đơn hàng thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     )
+     * )
+     */
+    public function getOrders()
+    {
+        $userId = Auth::id();
+        $orders = Order::where('user_id', $userId)->get();
+        return $this->json($orders, 'Lấy danh sách đơn hàng thành công', 200);
+    }
+
     #[Post(uri: "/store/orders/add", name: "store.orders.add")]
     /**
      * @OA\Post(
