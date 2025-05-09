@@ -2829,6 +2829,97 @@
                 ]
             }
         },
+        "/v1/store/orders": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Lấy danh sách đơn hàng của người dùng",
+                "description": "Trả về danh sách tất cả đơn hàng của người dùng đã đăng nhập",
+                "operationId": "getOrders",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "_id": {
+                                                        "type": "string",
+                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                    },
+                                                    "user_id": {
+                                                        "type": "string",
+                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "pending"
+                                                    },
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "sub_total": {
+                                                        "type": "number",
+                                                        "example": 30000
+                                                    },
+                                                    "shipping_fee": {
+                                                        "type": "number",
+                                                        "example": 15000
+                                                    },
+                                                    "discount": {
+                                                        "type": "number",
+                                                        "example": 0
+                                                    },
+                                                    "total_price": {
+                                                        "type": "number",
+                                                        "example": 45000
+                                                    },
+                                                    "shipping_address": {
+                                                        "type": "object"
+                                                    },
+                                                    "payment_method": {
+                                                        "type": "string",
+                                                        "example": "cod"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-06-15T14:30:00Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy danh sách đơn hàng thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/orders/add": {
             "post": {
                 "tags": [
