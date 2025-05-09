@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -24,10 +25,10 @@ use Spatie\RouteAttributes\Attributes\Middleware;
  */
 class AccountController extends Controller
 {
-    #[Get(uri: "/address", name: "account.addresses.index")]
+    #[Get(uri: "/addresses", name: "account.addresses.index")]
     /**
      * @OA\Get(
-     *     path="/v1/store/account/address",
+     *     path="/v1/store/account/addresses",
      *     operationId="getAddressList",
      *     tags={"Account"},
      *     summary="Lấy danh sách địa chỉ của người dùng",
@@ -64,10 +65,10 @@ class AccountController extends Controller
         return $this->json($addresses, 'Danh sách địa chỉ', 200);
     }
 
-    #[Post(uri: "/address/add", name: "account.addresses.add")]
+    #[Post(uri: "/addresses/add", name: "account.addresses.add")]
     /**
      * @OA\Post(
-     *     path="/v1/store/account/address/add",
+     *     path="/v1/store/account/addresses/add",
      *     operationId="addAddress",
      *     tags={"Account"},
      *     summary="Thêm địa chỉ mới cho người dùng",
@@ -187,10 +188,10 @@ class AccountController extends Controller
         return $this->json($newAddress, 'Địa chỉ đã được thêm thành công', 201);
     }
 
-    #[Patch(uri: "/address/update/{id}", name: "account.addresses.update")]
+    #[Patch(uri: "/addresses/update/{id}", name: "account.addresses.update")]
     /**
      * @OA\Patch(
-     *     path="/v1/store/account/address/update/{id}",
+     *     path="/v1/store/account/addresses/update/{id}",
      *     operationId="updateUserAddress",
      *     tags={"Account"},
      *     summary="Cập nhật địa chỉ của người dùng",
@@ -292,10 +293,10 @@ class AccountController extends Controller
         return $this->json($addresses[$addressIndex], 'Cập nhật địa chỉ thành công', 200);
     }
 
-    #[Delete(uri: "/address/delete/{id}", name: "account.addresses.delete")]
+    #[Delete(uri: "/addresses/delete/{id}", name: "account.addresses.delete")]
     /**
      * @OA\Delete(
-     *     path="/v1/store/account/address/delete/{id}",
+     *     path="/v1/store/account/addresses/delete/{id}",
      *     operationId="deleteAddress",
      *     tags={"Account"},
      *     summary="Xóa địa chỉ của người dùng",
@@ -493,5 +494,104 @@ class AccountController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
         return $this->json(null, 'Cập nhật mật khẩu thành công', 200);
+    }
+
+    #[Post(uri: "/carts/add", name: "account.carts.add")]
+    /**
+     * @OA\Post(
+     *     path="/v1/store/account/carts/add",
+     *     summary="Thêm sản phẩm vào giỏ hàng",
+     *     description="Thêm một sản phẩm thuốc vào giỏ hàng của người dùng",
+     *     operationId="addToCart",
+     *     tags={"Account"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"medicine_id", "quantity"},
+     *             @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *             @OA\Property(property="quantity", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thêm vào giỏ hàng thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Đã thêm sản phẩm vào giỏ hàng"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="items", type="array", 
+     *                     @OA\Items(type="object",
+     *                         @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="quantity", type="integer", example=1)
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2023-01-01T00:00:00.000000Z"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2023-01-01T00:00:00.000000Z")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ"),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy thuốc",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy thuốc"),
+     *             @OA\Property(property="data", type="null")
+     *         )
+     *     )
+     * )
+     */
+    public function addToCart(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'medicine_id' => 'required|string|exists:medicines,_id',
+            'quantity' => 'required|numeric|min:1',
+        ]);
+        if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
+        $userId = $request->user()->_id;
+        $medicineId = $request->medicine_id;
+        $quantity = (int)$request->quantity; // Convert to integer
+        $cart = Cart::where('user_id', $userId)->first();
+        if (!$cart) {
+            $cart = new Cart();
+            $cart->user_id = $userId;
+            $cart->items = [[
+                'medicine_id' => $medicineId,
+                'quantity' => $quantity,
+            ]];
+            $cart->save();
+        } else {
+            $items = $cart->items ?? [];
+            $found = false;
+            $items = collect($items)->map(function ($item) use ($medicineId, $quantity, &$found) {
+                if ($item['medicine_id'] == $medicineId) {
+                    $found = true;
+                    $item['quantity'] = (int)$item['quantity'] + $quantity;
+                }
+                return $item;
+            })->toArray();
+            if (!$found) {
+                $items[] = [
+                    'medicine_id' => $medicineId,
+                    'quantity' => $quantity,
+                ];
+            }
+            $cart->items = $items;
+            $cart->save();
+        }
+        return $this->json($cart, 'Đã thêm sản phẩm vào giỏ hàng', 200);
     }
 }
