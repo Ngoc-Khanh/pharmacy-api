@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Medicine;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -494,6 +495,78 @@ class AccountController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
         return $this->json(null, 'Cập nhật mật khẩu thành công', 200);
+    }
+
+    #[Get(uri: "/carts", name: "account.carts.get")]
+    /**
+     * @OA\Get(
+     *     path="/v1/store/account/carts",
+     *     operationId="getUserCart",
+     *     tags={"Account"},
+     *     summary="Lấy giỏ hàng của người dùng",
+     *     description="Trả về thông tin giỏ hàng của người dùng đã đăng nhập bao gồm danh sách sản phẩm và tổng giá trị",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy giỏ hàng thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="items", type="array", 
+     *                     @OA\Items(
+     *                         @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="quantity", type="integer", example=2),
+     *                         @OA\Property(property="medicine", type="object",
+     *                             @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                             @OA\Property(property="name", type="string", example="Paracetamol"),
+     *                             @OA\Property(property="slug", type="string", example="paracetamol"),
+     *                             @OA\Property(property="thumbnail", type="object",
+     *                                 @OA\Property(property="url", type="string", example="https://example.com/images/paracetamol.jpg"),
+     *                                 @OA\Property(property="alt", type="string", example="paracetamol-alt")
+     *                             ),
+     *                             @OA\Property(property="price", type="number", example=15000),
+     *                             @OA\Property(property="stock_status", type="string", example="in_stock")
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="total", type="number", example=30000),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2023-06-15T14:30:00Z")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy giỏ hàng thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     )
+     * )
+     */
+    public function getUserCart(Request $request)
+    {
+        $user = $request->user();
+        $cart = Cart::where('user_id', $user->id)->first();
+        if (!$cart || empty($cart->items)) return $this->json($cart ? tap($cart, function ($cart) {
+            $cart->total = 0;
+        }) : null, 'Lấy giỏ hàng thành công', 200);
+        $medicineIds = collect($cart->items)->pluck('medicine_id')->toArray();
+        $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
+        $total = 0;
+        $cart->items = collect($cart->items)
+            ->map(function ($item) use ($medicines, &$total) {
+                if (!isset($medicines[$item['medicine_id']])) return null;
+                $medicine = $medicines[$item['medicine_id']];
+                $price = $medicine->variants['price'];
+                $total += $price * $item['quantity'];
+                $item['medicine'] = [
+                    'id' => $medicine->id,
+                    'name' => $medicine->name,
+                    'slug' => $medicine->slug,
+                    'thumbnail' => $medicine->thumbnail,
+                    'price' => $price,
+                    'stock_status' => $medicine->variants['stock_status']
+                ];
+                return $item;
+            })->filter()->values()->toArray();
+        $cart->total = $total;
+        return $this->json($cart, 'Lấy giỏ hàng thành công', 200);
     }
 
     #[Post(uri: "/carts/add", name: "account.carts.add")]
