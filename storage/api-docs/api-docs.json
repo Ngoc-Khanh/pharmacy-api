@@ -871,6 +871,119 @@
                 ]
             }
         },
+        "/v1/store/account/carts": {
+            "get": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Lấy giỏ hàng của người dùng",
+                "description": "Trả về thông tin giỏ hàng của người dùng đã đăng nhập bao gồm danh sách sản phẩm và tổng giá trị",
+                "operationId": "getUserCart",
+                "responses": {
+                    "200": {
+                        "description": "Lấy giỏ hàng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "medicine_id": {
+                                                                "type": "string",
+                                                                "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "medicine": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "string",
+                                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Paracetamol"
+                                                                    },
+                                                                    "slug": {
+                                                                        "type": "string",
+                                                                        "example": "paracetamol"
+                                                                    },
+                                                                    "thumbnail": {
+                                                                        "properties": {
+                                                                            "url": {
+                                                                                "type": "string",
+                                                                                "example": "https://example.com/images/paracetamol.jpg"
+                                                                            },
+                                                                            "alt": {
+                                                                                "type": "string",
+                                                                                "example": "paracetamol-alt"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "example": 15000
+                                                                    },
+                                                                    "stock_status": {
+                                                                        "type": "string",
+                                                                        "example": "in_stock"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "total": {
+                                                    "type": "number",
+                                                    "example": 30000
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-06-15T14:30:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy giỏ hàng thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/account/carts/add": {
             "post": {
                 "tags": [
@@ -2701,6 +2814,244 @@
                                         },
                                         "data": {
                                             "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/store/orders/add": {
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Tạo đơn hàng mới",
+                "description": "Tạo đơn hàng mới từ giỏ hàng của người dùng đã đăng nhập",
+                "operationId": "addOrders",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "shipping_address_id",
+                                    "payment_method"
+                                ],
+                                "properties": {
+                                    "shipping_address_id": {
+                                        "description": "ID của địa chỉ giao hàng",
+                                        "type": "string",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "payment_method": {
+                                        "description": "Phương thức thanh toán",
+                                        "type": "string",
+                                        "enum": [
+                                            "cod",
+                                            "cash",
+                                            "online"
+                                        ],
+                                        "example": "cod"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Đặt hàng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "medicine_id": {
+                                                                "type": "string",
+                                                                "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "price": {
+                                                                "type": "number",
+                                                                "example": 15000
+                                                            },
+                                                            "item_total": {
+                                                                "type": "number",
+                                                                "example": 30000
+                                                            },
+                                                            "medicine": {
+                                                                "properties": {
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Paracetamol"
+                                                                    },
+                                                                    "thumbnail": {
+                                                                        "properties": {
+                                                                            "url": {
+                                                                                "type": "string",
+                                                                                "example": "https://example.com/images/paracetamol.jpg"
+                                                                            },
+                                                                            "alt": {
+                                                                                "type": "string",
+                                                                                "example": "paracetamol-alt"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "sub_total": {
+                                                    "type": "number",
+                                                    "example": 30000
+                                                },
+                                                "shipping_fee": {
+                                                    "type": "number",
+                                                    "example": 15000
+                                                },
+                                                "discount": {
+                                                    "type": "number",
+                                                    "example": 0
+                                                },
+                                                "total_price": {
+                                                    "type": "number",
+                                                    "example": 45000
+                                                },
+                                                "shipping_address": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Nguyễn Văn A"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "0901234567"
+                                                        },
+                                                        "address_line_1": {
+                                                            "type": "string",
+                                                            "example": "123 Đường Nguyễn Huệ"
+                                                        },
+                                                        "city": {
+                                                            "type": "string",
+                                                            "example": "Quận 1"
+                                                        },
+                                                        "state": {
+                                                            "type": "string",
+                                                            "example": "TP Hồ Chí Minh"
+                                                        },
+                                                        "country": {
+                                                            "type": "string",
+                                                            "example": "Việt Nam"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "payment_method": {
+                                                    "type": "string",
+                                                    "example": "cod"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-06-15T14:30:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đặt hàng thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi dữ liệu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Giỏ hàng trống"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 400
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The shipping address id field is required."
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "error": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -4874,6 +5225,10 @@
         {
             "name": "Medicines",
             "description": "Các API endpoint để quản lý sản phẩm dược phẩm"
+        },
+        {
+            "name": "Orders",
+            "description": "Quản lý đơn hàng"
         },
         {
             "name": "Review",
