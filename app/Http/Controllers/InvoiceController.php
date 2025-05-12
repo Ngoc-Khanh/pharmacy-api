@@ -118,7 +118,6 @@ class InvoiceController extends Controller
             'status' => InvoiceStatus::PENDING,
             'created_at' => now(),
         ]);
-
         return $this->json($invoice, 'Tạo hóa đơn thành công', 200);
     }
 }

@@ -152,7 +152,6 @@ class AuthController extends Controller
   public function register(\App\Http\Requests\RegisterRequest $request)
   {
     $validated = $request->validated();
-    if ($validated->fails()) return $this->fail([], $validated->errors(), 422);
     $user = User::create([
       'firstname' => $validated['firstname'],
       'lastname' => $validated['lastname'],
