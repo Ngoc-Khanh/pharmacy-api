@@ -44,8 +44,8 @@ class AccountController extends Controller
      *                    @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
      *                    @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
      *                    @OA\Property(property="phone", type="string", example="0901234567"),
-     *                    @OA\Property(property="address_line_1", type="string", example="123 Đường Nguyễn Huệ"),
-     *                    @OA\Property(property="address_line_2", type="string", example="Phường Bến Nghé"),
+     *                    @OA\Property(property="address_line1", type="string", example="123 Đường Nguyễn Huệ"),
+     *                    @OA\Property(property="address_line2", type="string", example="Phường Bến Nghé"),
      *                    @OA\Property(property="city", type="string", example="Quận 1"),
      *                    @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
      *                    @OA\Property(property="country", type="string", example="Việt Nam"),
@@ -78,11 +78,11 @@ class AccountController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name", "phone", "address_line_1", "city", "country", "postal_code"},
+     *             required={"name", "phone", "address_line1", "city", "country", "postal_code"},
      *             @OA\Property(property="name", type="string", example="Nguyễn Văn A", description="Tên người nhận"),
      *             @OA\Property(property="phone", type="string", example="0901234567", description="Số điện thoại"),
-     *             @OA\Property(property="address_line_1", type="string", example="123 Đường Nguyễn Huệ", description="Địa chỉ dòng 1"),
-     *             @OA\Property(property="address_line_2", type="string", example="Phường Bến Nghé", description="Địa chỉ dòng 2"),
+     *             @OA\Property(property="address_line1", type="string", example="123 Đường Nguyễn Huệ", description="Địa chỉ dòng 1"),
+     *             @OA\Property(property="address_line2", type="string", example="Phường Bến Nghé", description="Địa chỉ dòng 2"),
      *             @OA\Property(property="city", type="string", example="Quận 1", description="Quận/Huyện"),
      *             @OA\Property(property="state", type="string", example="TP Hồ Chí Minh", description="Tỉnh/Thành phố"),
      *             @OA\Property(property="country", type="string", example="Việt Nam", description="Quốc gia"),
@@ -98,8 +98,8 @@ class AccountController extends Controller
      *                 @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
      *                 @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
      *                 @OA\Property(property="phone", type="string", example="0901234567"),
-     *                 @OA\Property(property="address_line_1", type="string", example="123 Đường Nguyễn Huệ"),
-     *                 @OA\Property(property="address_line_2", type="string", example="Phường Bến Nghé"),
+     *                 @OA\Property(property="address_line1", type="string", example="123 Đường Nguyễn Huệ"),
+     *                 @OA\Property(property="address_line2", type="string", example="Phường Bến Nghé"),
      *                 @OA\Property(property="city", type="string", example="Quận 1"),
      *                 @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
      *                 @OA\Property(property="country", type="string", example="Việt Nam"),
@@ -141,8 +141,8 @@ class AccountController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:15',
-            'address_line_1' => 'required|string|max:255',
-            'address_line_2' => 'nullable|string|max:255',
+            'address_line1' => 'required|string|max:255',
+            'address_line2' => 'nullable|string|max:255',
             'city' => 'required|string|max:100',
             'state' => 'nullable|string|max:100',
             'country' => 'required|string|max:100',
@@ -156,8 +156,8 @@ class AccountController extends Controller
             'id' => Str::uuid()->toString(),
             'name' => $request->name,
             'phone' => $request->phone,
-            'address_line_1' => $request->address_line_1,
-            'address_line_2' => $request->address_line_2 ?? '',
+            'address_line1' => $request->address_line1,
+            'address_line2' => $request->address_line2 ?? '',
             'city' => $request->city,
             'state' => $request->state ?? '',
             'country' => $request->country,
@@ -166,10 +166,10 @@ class AccountController extends Controller
         ];
         foreach ($addresses as $address) {
             if (
-                ($address['address_line_1'] ?? $address['address_line1']) === $newAddress['address_line_1'] &&
-                $address['city'] === $newAddress['city'] &&
-                $address['country'] === $newAddress['country'] &&
-                $address['postal_code'] === $newAddress['postal_code']
+                ($address['address_line1'] ?? '') === $newAddress['address_line1'] &&
+                ($address['city'] ?? '') === $newAddress['city'] &&
+                ($address['country'] ?? '') === $newAddress['country'] &&
+                ($address['postal_code'] ?? '') === $newAddress['postal_code']
             ) {
                 return $this->fail([], 'Địa chỉ đã tồn tại', 400);
             }
@@ -210,8 +210,8 @@ class AccountController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="name", type="string", example="Nguyễn Văn A", description="Tên người nhận"),
      *             @OA\Property(property="phone", type="string", example="0901234567", description="Số điện thoại"),
-     *             @OA\Property(property="address_line_1", type="string", example="123 Đường ABC", description="Địa chỉ dòng 1"),
-     *             @OA\Property(property="address_line_2", type="string", example="Tầng 2", description="Địa chỉ dòng 2"),
+     *             @OA\Property(property="address_line1", type="string", example="123 Đường ABC", description="Địa chỉ dòng 1"),
+     *             @OA\Property(property="address_line2", type="string", example="Tầng 2", description="Địa chỉ dòng 2"),
      *             @OA\Property(property="city", type="string", example="Hồ Chí Minh", description="Thành phố"),
      *             @OA\Property(property="state", type="string", example="", description="Tỉnh/Bang"),
      *             @OA\Property(property="country", type="string", example="Việt Nam", description="Quốc gia"),
@@ -227,8 +227,8 @@ class AccountController extends Controller
      *                 @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
      *                 @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
      *                 @OA\Property(property="phone", type="string", example="0901234567"),
-     *                 @OA\Property(property="address_line_1", type="string", example="123 Đường ABC"),
-     *                 @OA\Property(property="address_line_2", type="string", example="Tầng 2"),
+     *                 @OA\Property(property="address_line1", type="string", example="123 Đường ABC"),
+     *                 @OA\Property(property="address_line2", type="string", example="Tầng 2"),
      *                 @OA\Property(property="city", type="string", example="Hồ Chí Minh"),
      *                 @OA\Property(property="state", type="string", example=""),
      *                 @OA\Property(property="country", type="string", example="Việt Nam"),
@@ -272,8 +272,8 @@ class AccountController extends Controller
         $fieldsToUpdate = [
             'name',
             'phone',
-            'address_line_1',
-            'address_line_2',
+            'address_line1',
+            'address_line2',
             'city',
             'state',
             'country',
@@ -344,6 +344,20 @@ class AccountController extends Controller
         $user->addresses = $addresses;
         $user->save();
         return $this->json([], 'Địa chỉ đã được xóa thành công', 200);
+    }
+
+    #[Post("/addresses/set-default-address/{id}", "account.addresses.setDefaultAddress")]
+    public function setDefaultAddress(Request $request, string $id)
+    {
+        $user = $request->user();
+        $user->addresses = array_map(function ($address) use ($id) {
+            $address['is_default'] = $address['id'] === $id;
+            return $address;
+        }, $user->addresses);
+        $user->save();
+
+        $defaultAddress = collect($user->addresses)->firstWhere('is_default', true);
+        return $this->json($defaultAddress, 'Đặt địa chỉ mặc định thành công', 200);
     }
 
     #[Patch(uri: "/profile/update", name: "account.profile.update")]

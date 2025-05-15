@@ -113,7 +113,7 @@ class OrderController extends Controller
      *                     @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
      *                     @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
      *                     @OA\Property(property="phone", type="string", example="0901234567"),
-     *                     @OA\Property(property="address_line_1", type="string", example="123 Đường Nguyễn Huệ"),
+     *                     @OA\Property(property="address_line1", type="string", example="123 Đường Nguyễn Huệ"),
      *                     @OA\Property(property="city", type="string", example="Quận 1"),
      *                     @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
      *                     @OA\Property(property="country", type="string", example="Việt Nam")
