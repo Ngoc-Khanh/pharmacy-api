@@ -22,6 +22,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 #[Middleware(middleware: "jwt.auth")]
 class UserController extends Controller
 {
+  #[Get(uri: "/", name: "admin.users.index", middleware: ["role:admin,pharmacist"])]
   /**
    * @OA\Get(
    *     path="/v1/admin/users",
@@ -79,11 +80,18 @@ class UserController extends Controller
    *     )  
    * )
    */
-  #[Get(uri: "/", name: "admin.users.index", middleware: ["role:admin,pharmacist"])]
   public function userList(Request $request)
   {
-    $user = $request->user()->all();
-    return $this->json($user, "Lấy danh sách người dùng thành công");
+    $perPage = $request->input('per_page', 15);
+    $sortField = $request->input('sort_by', 'created_at');
+    $sortOrder = $request->input('sort_order', 'desc');
+    $allowedSortFields = ['username', 'email', 'firstname', 'lastname', 'role', 'status', 'created_at', 'updated_at'];
+    if (!in_array($sortField, $allowedSortFields)) {
+      $sortField = 'created_at';
+    }
+    $users = User::orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')
+      ->paginate($perPage);
+    return $this->json($users, "Lấy danh sách người dùng thành công");
   }
 
   /**
