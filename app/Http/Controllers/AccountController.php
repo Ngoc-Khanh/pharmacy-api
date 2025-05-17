@@ -679,21 +679,21 @@ class AccountController extends Controller
         return $this->json($cart, 'Đã thêm sản phẩm vào giỏ hàng', 200);
     }
 
-    #[Delete(uri: "/carts/remove", name: "account.carts.remove")]
+    #[Delete(uri: "/carts/remove/{id}", name: "account.carts.remove")]
     /**
      * @OA\Delete(
-     *     path="/v1/store/account/carts/remove",
+     *     path="/v1/store/account/carts/remove/{id}",
      *     operationId="removeFromCart",
      *     tags={"Account"},
      *     summary="Xóa sản phẩm khỏi giỏ hàng",
      *     description="Xóa một sản phẩm thuốc khỏi giỏ hàng của người dùng",
      *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"medicine_id"},
-     *             @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
-     *         )
+     *         description="ID của thuốc cần xóa khỏi giỏ hàng",
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -707,26 +707,26 @@ class AccountController extends Controller
      *         )
      *     ),
      *     @OA\Response(
-     *         response=422,
-     *         description="Dữ liệu không hợp lệ",
+     *         response=404,
+     *         description="Không tìm thấy giỏ hàng hoặc sản phẩm",
      *         @OA\JsonContent(
      *             @OA\Property(property="data", type="null"),
-     *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ"),
-     *             @OA\Property(property="status", type="integer", example=422),
+     *             @OA\Property(property="message", type="string", example="Giỏ hàng không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=404),
      *             @OA\Property(property="locale", type="string", example="vi_VN"),
-     *             @OA\Property(property="error", type="object")
+     *             @OA\Property(property="error", type="null")
      *         )
      *     ),
      * )
-    */
-    public function removeFromCart(Request $request)
+     */
+    public function removeFromCart(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make(['medicine_id' => $id], [
             'medicine_id' => 'required|string|exists:medicines,_id',
         ]);
         if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
         $userId = $request->user()->_id;
-        $medicineId = $request->medicine_id;
+        $medicineId = $id;
         $cart = Cart::where('user_id', $userId)->first();
         if (!$cart) return $this->fail(null, 'Giỏ hàng không tồn tại', 404);
         $items = collect($cart->items ?? []);
@@ -736,7 +736,7 @@ class AccountController extends Controller
         })->values()->toArray();
         if (empty($items)) {
             Cart::where('user_id', $userId)->delete();
-            return $this->json([], 'Đã xóa sản phẩm khỏi giỏ hàng và giỏ hàng đã được xóa', 200);
+            return $this->json(null, 'Đã xóa sản phẩm khỏi giỏ hàng và giỏ hàng đã được xóa', 200);
         }
         $cart->items = $items;
         $cart->save();
