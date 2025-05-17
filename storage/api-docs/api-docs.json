@@ -46,11 +46,11 @@
                                                         "type": "string",
                                                         "example": "0901234567"
                                                     },
-                                                    "address_line_1": {
+                                                    "address_line1": {
                                                         "type": "string",
                                                         "example": "123 Đường Nguyễn Huệ"
                                                     },
-                                                    "address_line_2": {
+                                                    "address_line2": {
                                                         "type": "string",
                                                         "example": "Phường Bến Nghé"
                                                     },
@@ -116,7 +116,7 @@
                                 "required": [
                                     "name",
                                     "phone",
-                                    "address_line_1",
+                                    "address_line1",
                                     "city",
                                     "country",
                                     "postal_code"
@@ -132,12 +132,12 @@
                                         "type": "string",
                                         "example": "0901234567"
                                     },
-                                    "address_line_1": {
+                                    "address_line1": {
                                         "description": "Địa chỉ dòng 1",
                                         "type": "string",
                                         "example": "123 Đường Nguyễn Huệ"
                                     },
-                                    "address_line_2": {
+                                    "address_line2": {
                                         "description": "Địa chỉ dòng 2",
                                         "type": "string",
                                         "example": "Phường Bến Nghé"
@@ -194,11 +194,11 @@
                                                     "type": "string",
                                                     "example": "0901234567"
                                                 },
-                                                "address_line_1": {
+                                                "address_line1": {
                                                     "type": "string",
                                                     "example": "123 Đường Nguyễn Huệ"
                                                 },
-                                                "address_line_2": {
+                                                "address_line2": {
                                                     "type": "string",
                                                     "example": "Phường Bến Nghé"
                                                 },
@@ -350,12 +350,12 @@
                                         "type": "string",
                                         "example": "0901234567"
                                     },
-                                    "address_line_1": {
+                                    "address_line1": {
                                         "description": "Địa chỉ dòng 1",
                                         "type": "string",
                                         "example": "123 Đường ABC"
                                     },
-                                    "address_line_2": {
+                                    "address_line2": {
                                         "description": "Địa chỉ dòng 2",
                                         "type": "string",
                                         "example": "Tầng 2"
@@ -412,11 +412,11 @@
                                                     "type": "string",
                                                     "example": "0901234567"
                                                 },
-                                                "address_line_1": {
+                                                "address_line1": {
                                                     "type": "string",
                                                     "example": "123 Đường ABC"
                                                 },
-                                                "address_line_2": {
+                                                "address_line2": {
                                                     "type": "string",
                                                     "example": "Tầng 2"
                                                 },
@@ -1118,6 +1118,102 @@
                                         },
                                         "data": {
                                             "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/store/account/carts/remove": {
+            "delete": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Xóa sản phẩm khỏi giỏ hàng",
+                "description": "Xóa một sản phẩm thuốc khỏi giỏ hàng của người dùng",
+                "operationId": "removeFromCart",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "medicine_id"
+                                ],
+                                "properties": {
+                                    "medicine_id": {
+                                        "type": "string",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Xóa sản phẩm thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã xóa sản phẩm khỏi giỏ hàng"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -3229,7 +3325,7 @@
                                                             "type": "string",
                                                             "example": "0901234567"
                                                         },
-                                                        "address_line_1": {
+                                                        "address_line1": {
                                                             "type": "string",
                                                             "example": "123 Đường Nguyễn Huệ"
                                                         },
@@ -3852,6 +3948,288 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/api/v1/store/medicines": {
+            "get": {
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Lấy danh sách thuốc có phân trang",
+                "operationId": "897a455e523b572735d148439d4f283d",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Số trang",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy danh sách thuốc thành công"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string",
+                                                                "example": "65f43c2a8e5c5"
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Paracetamol"
+                                                            },
+                                                            "price": {
+                                                                "type": "number",
+                                                                "example": 15000
+                                                            },
+                                                            "category": {
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/store/medicines/{id}/details": {
+            "get": {
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Lấy chi tiết thuốc theo ID",
+                "operationId": "bb6fdee29d8d75cadaf556cbb8489a10",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID thuốc",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thông tin thuốc thành công"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "65f43c2a8e5c5"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Paracetamol"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "price": {
+                                                    "type": "number",
+                                                    "example": 15000
+                                                },
+                                                "category": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy thuốc",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy thuốc"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/store/categories": {
+            "get": {
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Lấy tất cả danh mục",
+                "operationId": "9c88da1a9d9a14a88ef30c84eecd1548",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy toàn bộ danh mục thành công"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "65f43c2a8e5c5"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Giảm đau"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/store/popular-medicine": {
+            "get": {
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Lấy top 4 thuốc phổ biến nhất",
+                "operationId": "0116b35ddc1477888ac6f7eb83d5fee5",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy 4 sản phẩm thuốc có lượt thích và đánh giá cao nhất thành công"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "65f43c2a8e5c5"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Paracetamol"
+                                                    },
+                                                    "price": {
+                                                        "type": "number",
+                                                        "example": 15000
+                                                    },
+                                                    "ratings": {
+                                                        "properties": {
+                                                            "liked": {
+                                                                "type": "integer",
+                                                                "example": 150
+                                                            },
+                                                            "star": {
+                                                                "type": "number",
+                                                                "example": 4.8
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/v1/admin/suppliers": {
@@ -5501,6 +5879,10 @@
         {
             "name": "Review",
             "description": "Đánh giá sản phẩm"
+        },
+        {
+            "name": "Store",
+            "description": "Các API cho Pharmacity Store"
         },
         {
             "name": "Supplier",

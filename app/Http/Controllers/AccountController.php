@@ -556,29 +556,26 @@ class AccountController extends Controller
     public function getUserCart(Request $request)
     {
         $user = $request->user();
-        $cart = Cart::where('user_id', $user->id)->first();
-        if (!$cart || empty($cart->items)) return $this->json($cart ? tap($cart, function ($cart) {
-            $cart->total = 0;
-        }) : null, 'Lấy giỏ hàng thành công', 200);
+        $cart = Cart::where('user_id', $user->_id ?? $user->id)->first();
+        if (!$cart || empty($cart->items)) {
+            if ($cart) $cart->total = 0;
+            return $this->json($cart, 'Lấy giỏ hàng thành công', 200);
+        }
+
         $medicineIds = collect($cart->items)->pluck('medicine_id')->toArray();
         $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
         $total = 0;
+
         $cart->items = collect($cart->items)
             ->map(function ($item) use ($medicines, &$total) {
                 if (!isset($medicines[$item['medicine_id']])) return null;
                 $medicine = $medicines[$item['medicine_id']];
-                $price = $medicine->variants['price'];
+                $price = $medicine->variants['price'] ?? 0;
                 $total += $price * $item['quantity'];
-                $item['medicine'] = [
-                    'id' => $medicine->id,
-                    'name' => $medicine->name,
-                    'slug' => $medicine->slug,
-                    'thumbnail' => $medicine->thumbnail,
-                    'price' => $price,
-                    'stock_status' => $medicine->variants['stock_status']
-                ];
+                $item['medicine'] = $medicine; // Gán toàn bộ object medicine
                 return $item;
             })->filter()->values()->toArray();
+
         $cart->total = $total;
         return $this->json($cart, 'Lấy giỏ hàng thành công', 200);
     }
@@ -680,5 +677,69 @@ class AccountController extends Controller
             $cart->save();
         }
         return $this->json($cart, 'Đã thêm sản phẩm vào giỏ hàng', 200);
+    }
+
+    #[Delete(uri: "/carts/remove", name: "account.carts.remove")]
+    /**
+     * @OA\Delete(
+     *     path="/v1/store/account/carts/remove",
+     *     operationId="removeFromCart",
+     *     tags={"Account"},
+     *     summary="Xóa sản phẩm khỏi giỏ hàng",
+     *     description="Xóa một sản phẩm thuốc khỏi giỏ hàng của người dùng",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"medicine_id"},
+     *             @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Xóa sản phẩm thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Đã xóa sản phẩm khỏi giỏ hàng"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ"),
+     *             @OA\Property(property="status", type="integer", example=422),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     ),
+     * )
+    */
+    public function removeFromCart(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'medicine_id' => 'required|string|exists:medicines,_id',
+        ]);
+        if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
+        $userId = $request->user()->_id;
+        $medicineId = $request->medicine_id;
+        $cart = Cart::where('user_id', $userId)->first();
+        if (!$cart) return $this->fail(null, 'Giỏ hàng không tồn tại', 404);
+        $items = collect($cart->items ?? []);
+        if ($items->isEmpty()) return $this->fail(null, 'Giỏ hàng trống', 404);
+        $items = $items->filter(function ($item) use ($medicineId) {
+            return $item['medicine_id'] !== $medicineId;
+        })->values()->toArray();
+        if (empty($items)) {
+            Cart::where('user_id', $userId)->delete();
+            return $this->json([], 'Đã xóa sản phẩm khỏi giỏ hàng và giỏ hàng đã được xóa', 200);
+        }
+        $cart->items = $items;
+        $cart->save();
+        return $this->json($cart, 'Đã xóa sản phẩm khỏi giỏ hàng', 200);
     }
 }
