@@ -40,6 +40,7 @@ class CategoryController extends Controller
      *                    @OA\Property(property="title", type="string", example="Thuốc kháng sinh"),
      *                    @OA\Property(property="slug", type="string", example="thuoc-khang-sinh"),
      *                    @OA\Property(property="description", type="string", example="Các loại thuốc kháng sinh phổ biến"),
+     *                    @OA\Property(property="is_active", type="boolean", example=true),
      *                    @OA\Property(property="created_at", type="string", format="date-time"),
      *                    @OA\Property(property="updated_at", type="string", format="date-time")
      *                )
@@ -93,7 +94,8 @@ class CategoryController extends Controller
      *         @OA\JsonContent(
      *             required={"title"},
      *             @OA\Property(property="title", type="string", example="Thuốc kháng sinh", description="Tên danh mục"),
-     *             @OA\Property(property="description", type="string", example="Các loại thuốc kháng sinh phổ biến", description="Mô tả chi tiết về danh mục")
+     *             @OA\Property(property="description", type="string", example="Các loại thuốc kháng sinh phổ biến", description="Mô tả chi tiết về danh mục"),
+     *             @OA\Property(property="is_active", type="boolean", example=true, description="Trạng thái kích hoạt của danh mục")
      *         )
      *     ),
      *     @OA\Response(
@@ -105,6 +107,7 @@ class CategoryController extends Controller
      *                 @OA\Property(property="title", type="string", example="Thuốc kháng sinh"),
      *                 @OA\Property(property="slug", type="string", example="thuoc-khang-sinh"),
      *                 @OA\Property(property="description", type="string", example="Các loại thuốc kháng sinh phổ biến"),
+     *                 @OA\Property(property="is_active", type="boolean", example=true),
      *                 @OA\Property(property="created_at", type="string", format="date-time"),
      *                 @OA\Property(property="updated_at", type="string", format="date-time")
      *             ),
@@ -155,12 +158,15 @@ class CategoryController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|min:3|max:255',
             'description' => 'nullable|string|max:1000',
+            'is_active' => 'nullable|boolean',
         ]);
         if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
         $category = Category::create([
             'title' => $request->title,
             'slug' => \Illuminate\Support\Str::slug($request->title),
             'description' => $request->description,
+            'is_active' => $request->has('is_active') ? $request->is_active : true,
+            'created_at' => now(),
         ]);
         return $this->json($category, 'Danh mục đã được tạo thành công', 201);
     }
@@ -185,7 +191,8 @@ class CategoryController extends Controller
      *         @OA\JsonContent(
      *             required={"title"},
      *             @OA\Property(property="title", type="string", example="Thuốc kháng sinh", description="Tên danh mục"),
-     *             @OA\Property(property="description", type="string", example="Các loại thuốc kháng sinh phổ biến", description="Mô tả chi tiết về danh mục")
+     *             @OA\Property(property="description", type="string", example="Các loại thuốc kháng sinh phổ biến", description="Mô tả chi tiết về danh mục"),
+     *             @OA\Property(property="is_active", type="boolean", example=true, description="Trạng thái kích hoạt của danh mục")
      *         )
      *     ),
      *     @OA\Response(
@@ -197,6 +204,7 @@ class CategoryController extends Controller
      *                 @OA\Property(property="title", type="string", example="Thuốc kháng sinh"),
      *                 @OA\Property(property="slug", type="string", example="thuoc-khang-sinh"),
      *                 @OA\Property(property="description", type="string", example="Các loại thuốc kháng sinh phổ biến"),
+     *                 @OA\Property(property="is_active", type="boolean", example=true),
      *                 @OA\Property(property="created_at", type="string", format="date-time"),
      *                 @OA\Property(property="updated_at", type="string", format="date-time")
      *             ),
@@ -260,12 +268,14 @@ class CategoryController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|min:3|max:255',
             'description' => 'nullable|string|max:1000',
+            'is_active' => 'nullable|boolean',
         ]);
         if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
         $category->update([
             'title' => $request->title,
             'slug' => \Illuminate\Support\Str::slug($request->title),
             'description' => $request->description,
+            'is_active' => $request->has('is_active') ? $request->is_active : $category->is_active,
         ]);
         return $this->json($category, 'Danh mục đã được cập nhật thành công', 200);
     }

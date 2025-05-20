@@ -12,6 +12,7 @@ class Category extends Model
         'title',
         'slug',
         'description',
+        'is_active',
         'created_at',
     ];
 
