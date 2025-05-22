@@ -185,6 +185,11 @@ class MedicineController extends Controller
                 'is_featured' => $validated['variants']['is_featured'],
                 'is_active' => $validated['variants']['is_active'],
             ],
+            'rating' => [
+                'star' => 5.0,
+                'liked' => 0,
+                'review_count' => 0,
+            ],
             'details' => [
                 'ingredients' => $validated['details']['ingredients'],
                 'usage' => $validated['details']['usage'],
