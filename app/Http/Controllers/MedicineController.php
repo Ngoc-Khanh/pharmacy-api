@@ -63,6 +63,51 @@ class MedicineController extends Controller
         return $this->json($medicines, 'Danh sách thuốc', 200);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/medicines/{id}/details",
+     *     summary="Lấy chi tiết thuốc",
+     *     description="Truy xuất chi tiết của một thuốc theo ID",
+     *     operationId="getMedicineDetails",
+     *     tags={"Medicines"},
+     *     security={{"bearer_token":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID của thuốc cần lấy chi tiết",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Chi tiết thuốc",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Chi tiết thuốc"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy thuốc",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy thuốc"),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     )
+     * )
+     */
+    #[Get(uri: '/{id}/details', name: 'admin.medicines.details')]
+    public function getMedicineDetails($id)
+    {
+        $medicine = Medicine::find($id);
+        if (!$medicine) return $this->fail(null, 'Không tìm thấy thuốc', 404);
+        return $this->json($medicine, 'Chi tiết thuốc', 200);
+    }
+
     #[Post(uri: '/add', name: 'admin.medicines.add')]
     /**
      * @OA\Post(
@@ -448,6 +493,7 @@ class MedicineController extends Controller
         $medicine->thumbnail = [
             'public_id' => $uploadResult['public_id'],
             'url' => $uploadResult['url'],
+            'alt' => $medicine->slug . '-alt',
         ];
         $medicine->save();
         return $this->json($medicine, 'Đã tải ảnh thành công', 200);
