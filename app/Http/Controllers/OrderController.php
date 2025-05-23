@@ -79,7 +79,7 @@ class OrderController extends Controller
      *         @OA\JsonContent(
      *             required={"shipping_address_id", "payment_method"},
      *             @OA\Property(property="shipping_address_id", type="string", example="550e8400-e29b-41d4-a716-446655440000", description="ID của địa chỉ giao hàng"),
-     *             @OA\Property(property="payment_method", type="string", example="cod", description="Phương thức thanh toán", enum={"cod", "cash", "online"})
+     *             @OA\Property(property="payment_method", type="string", example="COD", description="Phương thức thanh toán", enum={"COD", "CREDIT-CARD", "BANK-TRANSFER"})
      *         )
      *     ),
      *     @OA\Response(
@@ -118,7 +118,7 @@ class OrderController extends Controller
      *                     @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
      *                     @OA\Property(property="country", type="string", example="Việt Nam")
      *                 ),
-     *                 @OA\Property(property="payment_method", type="string", example="cod"),
+     *                 @OA\Property(property="payment_method", type="string", example="COD"),
      *                 @OA\Property(property="created_at", type="string", format="date-time", example="2023-06-15T14:30:00Z")
      *             ),
      *             @OA\Property(property="message", type="string", example="Đặt hàng thành công"),
@@ -150,7 +150,7 @@ class OrderController extends Controller
     {
         $request->validate([
             'shipping_address_id' => 'required|string',
-            'payment_method' => 'required|in:cod,cash,online',
+            'payment_method' => 'required|in:COD,CREDIT-CARD,BANK-TRANSFER',
         ]);
         $userId = Auth::id();
         $user = User::find($userId);
