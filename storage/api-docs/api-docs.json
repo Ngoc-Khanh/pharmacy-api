@@ -3422,11 +3422,11 @@
                                         "description": "Phương thức thanh toán",
                                         "type": "string",
                                         "enum": [
-                                            "cod",
-                                            "cash",
-                                            "online"
+                                            "COD",
+                                            "CREDIT-CARD",
+                                            "BANK-TRANSFER"
                                         ],
-                                        "example": "cod"
+                                        "example": "COD"
                                     }
                                 },
                                 "type": "object"
@@ -3552,7 +3552,7 @@
                                                 },
                                                 "payment_method": {
                                                     "type": "string",
-                                                    "example": "cod"
+                                                    "example": "COD"
                                                 },
                                                 "created_at": {
                                                     "type": "string",
