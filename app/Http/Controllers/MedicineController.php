@@ -156,25 +156,29 @@ class MedicineController extends Controller
     {
         $validated = $request->validated();
         $slug = Str::slug($request->name);
-        $thumbnailData = [
-            'url' => null,
-            'alt' => $slug . '-alt',
-        ];
-        if ($request->hasFile('thumbnail')) {
-            $imageUtils = new ImageUtils();
-            $uploadResult = $imageUtils->uploadImage(
-                $request->file('thumbnail'),
-                'medicines',
-            );
-            if (!$uploadResult['success']) return $this->fail(null, 'Không thể tải ảnh: ' . $uploadResult['message'], 500);
-            $thumbnailData['url'] = $uploadResult['url'];
-        }
+        // $thumbnailData = [
+        //     'url' => null,
+        //     'alt' => $slug . '-alt',
+        // ];
+        // if ($request->hasFile('thumbnail')) {
+        //     $imageUtils = new ImageUtils();
+        //     $uploadResult = $imageUtils->uploadImage(
+        //         $request->file('thumbnail'),
+        //         'medicines',
+        //     );
+        //     if (!$uploadResult['success']) return $this->fail(null, 'Không thể tải ảnh: ' . $uploadResult['message'], 500);
+        //     $thumbnailData['url'] = $uploadResult['url'];
+        // }
         $data = Medicine::create([
             'category_id' => $validated['category_id'],
             'supplier_id' => $validated['supplier_id'],
             'name' => $validated['name'],
             'slug' => $slug,
-            'thumbnail' => $thumbnailData,
+            'thumbnail' => [
+                'public_id' => null,
+                'url' => null,
+                'alt' => $slug . '-alt',
+            ],
             'description' => $validated['description'],
             'variants' => [
                 'price' => $validated['variants']['price'],
