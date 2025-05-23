@@ -181,15 +181,15 @@ class MedicineController extends Controller
             ],
             'description' => $validated['description'],
             'variants' => [
-                'price' => $validated['variants']['price'],
+                'price' => $validated['variants']['original_price'] - ($validated['variants']['original_price'] * $validated['variants']['discount_percent'] / 100),
                 'limit_quantity' => $validated['variants']['limit_quantity'],
                 'stock_status' => $validated['variants']['stock_status'],
                 'original_price' => $validated['variants']['original_price'],
                 'discount_percent' => $validated['variants']['discount_percent'],
-                'is_featured' => $validated['variants']['is_featured'],
-                'is_active' => $validated['variants']['is_active'],
+                'is_featured' => $validated['variants']['is_featured'] ? true : false,
+                'is_active' => $validated['variants']['is_active'] ? true : false,
             ],
-            'rating' => [
+            'ratings' => [
                 'star' => 5.0,
                 'liked' => 0,
                 'review_count' => 0,
