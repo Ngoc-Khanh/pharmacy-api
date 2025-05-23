@@ -67,8 +67,8 @@ class MedicineController extends Controller
     /**
      * @OA\Post(
      *     path="/v1/admin/medicines/add",
-     *     summary="Thêm thuốc mới",
-     *     description="Tạo một sản phẩm thuốc mới với thông tin chi tiết",
+     *     summary="Add a new medicine",
+     *     description="Create a new medicine product with detailed information",
      *     operationId="addMedicine",
      *     tags={"Medicines"},
      *     security={{"bearer_token":{}}},
@@ -78,32 +78,32 @@ class MedicineController extends Controller
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                 required={"name", "category_id", "supplier_id"},
-     *                 @OA\Property(property="category_id", type="integer", description="ID của danh mục thuốc"),
-     *                 @OA\Property(property="supplier_id", type="integer", description="ID của nhà cung cấp"),
-     *                 @OA\Property(property="name", type="string", description="Tên thuốc"),
-     *                 @OA\Property(property="thumbnail", type="file", description="Hình ảnh thuốc"),
-     *                 @OA\Property(property="description", type="string", description="Mô tả thuốc"),
+     *                 @OA\Property(property="category_id", type="string", description="ID of the medicine category"),
+     *                 @OA\Property(property="supplier_id", type="string", description="ID of the supplier"),
+     *                 @OA\Property(property="name", type="string", description="Name of the medicine"),
+     *                 @OA\Property(property="thumbnail", type="file", description="Medicine image"),
+     *                 @OA\Property(property="description", type="string", description="Description of the medicine"),
      *                 @OA\Property(
      *                     property="variants",
      *                     type="object",
-     *                     @OA\Property(property="price", type="number", description="Giá bán"),
-     *                     @OA\Property(property="limit_quantity", type="integer", description="Số lượng giới hạn"),
-     *                     @OA\Property(property="stock_status", type="string", description="Trạng thái tồn kho"),
-     *                     @OA\Property(property="original_price", type="number", description="Giá gốc"),
-     *                     @OA\Property(property="discount_percent", type="number", description="Phần trăm giảm giá"),
-     *                     @OA\Property(property="is_featured", type="boolean", description="Có phải sản phẩm nổi bật"),
-     *                     @OA\Property(property="is_active", type="boolean", description="Trạng thái hoạt động")
+     *                     @OA\Property(property="price", type="number", format="float", description="Selling price"),
+     *                     @OA\Property(property="limit_quantity", type="integer", description="Limit quantity"),
+     *                     @OA\Property(property="stock_status", type="string", description="Stock status"),
+     *                     @OA\Property(property="original_price", type="number", format="float", description="Original price"),
+     *                     @OA\Property(property="discount_percent", type="number", format="float", description="Discount percentage"),
+     *                     @OA\Property(property="is_featured", type="boolean", description="Is the product featured"),
+     *                     @OA\Property(property="is_active", type="boolean", description="Active status")
      *                 ),
      *                 @OA\Property(
      *                     property="details",
      *                     type="object",
-     *                     @OA\Property(property="ingredients", type="string", description="Thành phần"),
-     *                     @OA\Property(property="usage", type="string", description="Cách dùng"),
+     *                     @OA\Property(property="ingredients", type="string", description="Ingredients"),
+     *                     @OA\Property(property="usage", type="array", @OA\Items(type="string"), description="Usage instructions"),
      *                     @OA\Property(
      *                         property="paramaters",
      *                         type="object",
-     *                         @OA\Property(property="origin", type="string", description="Xuất xứ"),
-     *                         @OA\Property(property="packaging", type="string", description="Quy cách đóng gói")
+     *                         @OA\Property(property="origin", type="string", description="Origin"),
+     *                         @OA\Property(property="packaging", type="string", description="Packaging details")
      *                     )
      *                 ),
      *                 @OA\Property(
@@ -112,28 +112,28 @@ class MedicineController extends Controller
      *                     @OA\Property(
      *                         property="dosage",
      *                         type="object",
-     *                         @OA\Property(property="adult", type="string", description="Liều dùng cho người lớn"),
-     *                         @OA\Property(property="child", type="string", description="Liều dùng cho trẻ em")
+     *                         @OA\Property(property="adult", type="string", description="Dosage for adults"),
+     *                         @OA\Property(property="child", type="string", description="Dosage for children")
      *                     ),
-     *                     @OA\Property(property="directions", type="string", description="Hướng dẫn sử dụng"),
-     *                     @OA\Property(property="precautions", type="string", description="Cảnh báo và thận trọng")
+     *                     @OA\Property(property="directions", type="array", @OA\Items(type="string"), description="Directions for use"),
+     *                     @OA\Property(property="precautions", type="array", @OA\Items(type="string"), description="Warnings and precautions")
      *                 )
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
-     *         description="Thêm thuốc thành công",
+     *         description="Medicine added successfully",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(property="data", type="object"),
-     *             @OA\Property(property="message", type="string", example="Đã thêm thuốc thành công"),
+     *             @OA\Property(property="message", type="string", example="Medicine added successfully"),
      *             @OA\Property(property="status", type="integer", example=201)
      *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Dữ liệu không hợp lệ",
+     *         description="Invalid data",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(property="message", type="string", example="The given data was invalid."),
@@ -142,11 +142,11 @@ class MedicineController extends Controller
      *     ),
      *     @OA\Response(
      *         response=500,
-     *         description="Lỗi server",
+     *         description="Server error",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(property="data", type="null"),
-     *             @OA\Property(property="message", type="string", example="Không thể tải ảnh"),
+     *             @OA\Property(property="message", type="string", example="Unable to upload image"),
      *             @OA\Property(property="status", type="integer", example=500)
      *         )
      *     )
@@ -156,19 +156,6 @@ class MedicineController extends Controller
     {
         $validated = $request->validated();
         $slug = Str::slug($request->name);
-        // $thumbnailData = [
-        //     'url' => null,
-        //     'alt' => $slug . '-alt',
-        // ];
-        // if ($request->hasFile('thumbnail')) {
-        //     $imageUtils = new ImageUtils();
-        //     $uploadResult = $imageUtils->uploadImage(
-        //         $request->file('thumbnail'),
-        //         'medicines',
-        //     );
-        //     if (!$uploadResult['success']) return $this->fail(null, 'Không thể tải ảnh: ' . $uploadResult['message'], 500);
-        //     $thumbnailData['url'] = $uploadResult['url'];
-        // }
         $data = Medicine::create([
             'category_id' => $validated['category_id'],
             'supplier_id' => $validated['supplier_id'],
@@ -394,5 +381,75 @@ class MedicineController extends Controller
         if (!$medicine) return $this->fail(null, 'Không tìm thấy thuốc', 404);
         $medicine->delete();
         return $this->json(null, 'Đã xóa thuốc thành công', 200);
+    }
+
+    #[Post(uri: '/{id}/upload-image', name: 'admin.medicines.upload-image')]
+    /**
+     * @OA\Post(
+     *     path="/v1/admin/medicines/{id}/upload-image",
+     *     summary="Upload medicine image",
+     *     description="Upload a thumbnail image for a medicine",
+     *     operationId="uploadMedicineImage",
+     *     tags={"Medicines"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="id", type="string", description="Medicine ID"),
+     *                 @OA\Property(property="thumbnail", type="file", description="Thumbnail image")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Image uploaded successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Image uploaded successfully"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Invalid data"),
+     *             @OA\Property(property="status", type="integer", example=422)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Unable to upload image"),
+     *             @OA\Property(property="status", type="integer", example=500)
+     *         )
+     *     )
+     * )
+     */
+    public function uploadImage(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'thumbnail' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+        if ($validator->fails()) return $this->fail(null, 'Dữ liệu không hợp lệ', 422);
+        $medicine = Medicine::find($id);
+        if (!$medicine) return $this->fail(null, 'Không tìm thấy thuốc', 404);
+        $imageUtils = new ImageUtils();
+        $uploadResult = $imageUtils->uploadImage(
+            $request->file('thumbnail'),
+            'medicines'
+        );
+        if (!$uploadResult['success']) return $this->fail(null, 'Không thể tải ảnh: ' . $uploadResult['message'], 500);
+        $medicine->thumbnail = [
+            'public_id' => $uploadResult['public_id'],
+            'url' => $uploadResult['url'],
+        ];
+        $medicine->save();
+        return $this->json($medicine, 'Đã tải ảnh thành công', 200);
     }
 }
