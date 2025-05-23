@@ -103,7 +103,7 @@ class MedicineController extends Controller
     #[Get(uri: '/{id}/details', name: 'admin.medicines.details')]
     public function getMedicineDetails($id)
     {
-        $medicine = Medicine::find($id);
+        $medicine = Medicine::with(['category', 'supplier'])->find($id);
         if (!$medicine) return $this->fail(null, 'Không tìm thấy thuốc', 404);
         return $this->json($medicine, 'Chi tiết thuốc', 200);
     }
