@@ -25,7 +25,6 @@ class MedicineRequest extends FormRequest
             'category_id' => 'required|string|exists:categories,_id',
             'supplier_id' => 'nullable|string|exists:suppliers,_id',
             'name' => 'required|string|min:3|max:255',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'description' => 'required|string|min:3|max:1000',
             'variants.price' => 'required|numeric|min:0',
             'variants.limit_quantity' => 'required|integer|min:0',
