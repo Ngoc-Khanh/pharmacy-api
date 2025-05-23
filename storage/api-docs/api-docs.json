@@ -1734,6 +1734,10 @@
                                                         "type": "string",
                                                         "example": "Các loại thuốc kháng sinh phổ biến"
                                                     },
+                                                    "is_active": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
                                                     "created_at": {
                                                         "type": "string",
                                                         "format": "date-time"
@@ -1862,6 +1866,11 @@
                                         "description": "Mô tả chi tiết về danh mục",
                                         "type": "string",
                                         "example": "Các loại thuốc kháng sinh phổ biến"
+                                    },
+                                    "is_active": {
+                                        "description": "Trạng thái kích hoạt của danh mục",
+                                        "type": "boolean",
+                                        "example": true
                                     }
                                 },
                                 "type": "object"
@@ -1893,6 +1902,10 @@
                                                 "description": {
                                                     "type": "string",
                                                     "example": "Các loại thuốc kháng sinh phổ biến"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean",
+                                                    "example": true
                                                 },
                                                 "created_at": {
                                                     "type": "string",
@@ -2063,6 +2076,11 @@
                                         "description": "Mô tả chi tiết về danh mục",
                                         "type": "string",
                                         "example": "Các loại thuốc kháng sinh phổ biến"
+                                    },
+                                    "is_active": {
+                                        "description": "Trạng thái kích hoạt của danh mục",
+                                        "type": "boolean",
+                                        "example": true
                                     }
                                 },
                                 "type": "object"
@@ -2094,6 +2112,10 @@
                                                 "description": {
                                                     "type": "string",
                                                     "example": "Các loại thuốc kháng sinh phổ biến"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean",
+                                                    "example": true
                                                 },
                                                 "created_at": {
                                                     "type": "string",
@@ -2592,8 +2614,8 @@
                 "tags": [
                     "Medicines"
                 ],
-                "summary": "Thêm thuốc mới",
-                "description": "Tạo một sản phẩm thuốc mới với thông tin chi tiết",
+                "summary": "Add a new medicine",
+                "description": "Create a new medicine product with detailed information",
                 "operationId": "addMedicine",
                 "requestBody": {
                     "required": true,
@@ -2607,53 +2629,56 @@
                                 ],
                                 "properties": {
                                     "category_id": {
-                                        "description": "ID của danh mục thuốc",
-                                        "type": "integer"
+                                        "description": "ID of the medicine category",
+                                        "type": "string"
                                     },
                                     "supplier_id": {
-                                        "description": "ID của nhà cung cấp",
-                                        "type": "integer"
+                                        "description": "ID of the supplier",
+                                        "type": "string"
                                     },
                                     "name": {
-                                        "description": "Tên thuốc",
+                                        "description": "Name of the medicine",
                                         "type": "string"
                                     },
                                     "thumbnail": {
-                                        "description": "Hình ảnh thuốc",
+                                        "description": "Medicine image",
                                         "type": "file"
                                     },
                                     "description": {
-                                        "description": "Mô tả thuốc",
+                                        "description": "Description of the medicine",
                                         "type": "string"
                                     },
                                     "variants": {
                                         "properties": {
                                             "price": {
-                                                "description": "Giá bán",
-                                                "type": "number"
+                                                "description": "Selling price",
+                                                "type": "number",
+                                                "format": "float"
                                             },
                                             "limit_quantity": {
-                                                "description": "Số lượng giới hạn",
+                                                "description": "Limit quantity",
                                                 "type": "integer"
                                             },
                                             "stock_status": {
-                                                "description": "Trạng thái tồn kho",
+                                                "description": "Stock status",
                                                 "type": "string"
                                             },
                                             "original_price": {
-                                                "description": "Giá gốc",
-                                                "type": "number"
+                                                "description": "Original price",
+                                                "type": "number",
+                                                "format": "float"
                                             },
                                             "discount_percent": {
-                                                "description": "Phần trăm giảm giá",
-                                                "type": "number"
+                                                "description": "Discount percentage",
+                                                "type": "number",
+                                                "format": "float"
                                             },
                                             "is_featured": {
-                                                "description": "Có phải sản phẩm nổi bật",
+                                                "description": "Is the product featured",
                                                 "type": "boolean"
                                             },
                                             "is_active": {
-                                                "description": "Trạng thái hoạt động",
+                                                "description": "Active status",
                                                 "type": "boolean"
                                             }
                                         },
@@ -2662,21 +2687,24 @@
                                     "details": {
                                         "properties": {
                                             "ingredients": {
-                                                "description": "Thành phần",
+                                                "description": "Ingredients",
                                                 "type": "string"
                                             },
                                             "usage": {
-                                                "description": "Cách dùng",
-                                                "type": "string"
+                                                "description": "Usage instructions",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
                                             },
                                             "paramaters": {
                                                 "properties": {
                                                     "origin": {
-                                                        "description": "Xuất xứ",
+                                                        "description": "Origin",
                                                         "type": "string"
                                                     },
                                                     "packaging": {
-                                                        "description": "Quy cách đóng gói",
+                                                        "description": "Packaging details",
                                                         "type": "string"
                                                     }
                                                 },
@@ -2690,23 +2718,29 @@
                                             "dosage": {
                                                 "properties": {
                                                     "adult": {
-                                                        "description": "Liều dùng cho người lớn",
+                                                        "description": "Dosage for adults",
                                                         "type": "string"
                                                     },
                                                     "child": {
-                                                        "description": "Liều dùng cho trẻ em",
+                                                        "description": "Dosage for children",
                                                         "type": "string"
                                                     }
                                                 },
                                                 "type": "object"
                                             },
                                             "directions": {
-                                                "description": "Hướng dẫn sử dụng",
-                                                "type": "string"
+                                                "description": "Directions for use",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
                                             },
                                             "precautions": {
-                                                "description": "Cảnh báo và thận trọng",
-                                                "type": "string"
+                                                "description": "Warnings and precautions",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
                                             }
                                         },
                                         "type": "object"
@@ -2719,7 +2753,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Thêm thuốc thành công",
+                        "description": "Medicine added successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2729,7 +2763,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Đã thêm thuốc thành công"
+                                            "example": "Medicine added successfully"
                                         },
                                         "status": {
                                             "type": "integer",
@@ -2742,7 +2776,7 @@
                         }
                     },
                     "422": {
-                        "description": "Dữ liệu không hợp lệ",
+                        "description": "Invalid data",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2761,7 +2795,7 @@
                         }
                     },
                     "500": {
-                        "description": "Lỗi server",
+                        "description": "Server error",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2771,7 +2805,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Không thể tải ảnh"
+                                            "example": "Unable to upload image"
                                         },
                                         "status": {
                                             "type": "integer",
@@ -3075,6 +3109,112 @@
                                         },
                                         "data": {
                                             "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/medicines/{id}/upload-image": {
+            "post": {
+                "tags": [
+                    "Medicines"
+                ],
+                "summary": "Upload medicine image",
+                "description": "Upload a thumbnail image for a medicine",
+                "operationId": "uploadMedicineImage",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "id": {
+                                        "description": "Medicine ID",
+                                        "type": "string"
+                                    },
+                                    "thumbnail": {
+                                        "description": "Thumbnail image",
+                                        "type": "file"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image uploaded successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Image uploaded successfully"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid data"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unable to upload image"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 500
                                         }
                                     },
                                     "type": "object"
