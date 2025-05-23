@@ -63,7 +63,7 @@ class StoreController extends Controller
     public function Medicines(Request $request)
     {
         // Lấy danh sách thuốc có phân trang
-        $medicines = Medicine::with('category')
+        $medicines = Medicine::with(['category', 'supplier'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -115,7 +115,7 @@ class StoreController extends Controller
     public function MedicineDetails($id)
     {
         // Lấy chi tiết thuốc theo ID
-        $medicine = Medicine::with('category')
+        $medicine = Medicine::with(['category', 'supplier'])
             ->where('id', $id)
             ->first();
         if (!$medicine) return $this->json(null, "Không tìm thấy thuốc", 404);
@@ -197,4 +197,3 @@ class StoreController extends Controller
         return $this->json($medicines, "Lấy 4 sản phẩm thuốc có lượt thích và đánh giá cao nhất thành công");
     }
 }
-
