@@ -9,10 +9,12 @@ use App\Models\User;
 use App\Models\Medicine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
+use Spatie\RouteAttributes\Attributes\Patch;
 
 #[Prefix(prefix: "v1")]
 #[Middleware(middleware: "jwt.auth")]
@@ -361,5 +363,119 @@ class OrderController extends Controller
             ] : null;
         });
         return $this->json($orders, 'Lấy danh sách đơn hàng thành công', 200);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/admin/orders/{id}/status",
+     *     operationId="updateOrderStatus",
+     *     tags={"Orders"},
+     *     summary="Cập nhật trạng thái đơn hàng",
+     *     description="Cập nhật trạng thái của đơn hàng theo ID",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của đơn hàng",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="SHIPPED", 
+     *                description="Trạng thái đơn hàng (PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED, COMPLETED)")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật trạng thái thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object"),
+     *             @OA\Property(property="message", type="string", example="Cập nhật trạng thái đơn hàng thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Đơn hàng không tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Đơn hàng không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập"),
+     *             @OA\Property(property="status", type="integer", example=403)
+     *         )
+     *     )
+     * )
+     */
+    #[Patch(uri: "/admin/orders/{id}/status", name: "admin.orders.updateStatus", middleware: "role:admin")]
+    public function updateOrderStatus($id, Request $request)
+    {
+        $order = Order::find($id);
+        if (!$order) return $this->fail(null, 'Đơn hàng không tồn tại', 404);
+        $order->status = $request->status;
+        $order->save();
+        return $this->json($order, 'Cập nhật trạng thái đơn hàng thành công', 200);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/admin/orders/{id}/delete",
+     *     operationId="deleteOrder",
+     *     tags={"Orders"},
+     *     summary="Xóa đơn hàng",
+     *     description="Xóa đơn hàng theo ID",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của đơn hàng cần xóa",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Xóa đơn hàng thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Xóa đơn hàng thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Đơn hàng không tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Đơn hàng không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập"),
+     *             @OA\Property(property="status", type="integer", example=403)
+     *         )
+     *     )
+     * )
+     */
+    #[Delete(uri: "/admin/orders/{id}/delete", name: "admin.orders.delete", middleware: "role:admin")]
+    public function deleteOrder($id)
+    {
+        $order = Order::find($id);
+        if (!$order) return $this->fail(null, 'Đơn hàng không tồn tại', 404);
+        $order->delete();
+        return $this->json(null, 'Xóa đơn hàng thành công', 200);
     }
 }
