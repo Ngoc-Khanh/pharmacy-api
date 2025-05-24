@@ -4255,7 +4255,7 @@
                 ]
             }
         },
-        "/admin/orders/{id}/status": {
+        "/v1/admin/orders/{id}/status": {
             "patch": {
                 "tags": [
                     "Orders"
@@ -4369,7 +4369,7 @@
                 ]
             }
         },
-        "/admin/orders/{id}/delete": {
+        "/v1/admin/orders/{id}/delete": {
             "delete": {
                 "tags": [
                     "Orders"
@@ -4989,13 +4989,13 @@
                 ]
             }
         },
-        "/api/v1/store/medicines": {
+        "/v1/store/medicines": {
             "get": {
                 "tags": [
                     "Store"
                 ],
                 "summary": "Lấy danh sách thuốc có phân trang",
-                "operationId": "897a455e523b572735d148439d4f283d",
+                "operationId": "81b256f0194ea99f51f89c58b204aaf5",
                 "parameters": [
                     {
                         "name": "page",
@@ -5068,13 +5068,13 @@
                 }
             }
         },
-        "/api/v1/store/medicines/{id}/details": {
+        "/v1/store/medicines/{id}/details": {
             "get": {
                 "tags": [
                     "Store"
                 ],
                 "summary": "Lấy chi tiết thuốc theo ID",
-                "operationId": "bb6fdee29d8d75cadaf556cbb8489a10",
+                "operationId": "854470dfb5272e06d441931635148381",
                 "parameters": [
                     {
                         "name": "id",
@@ -5157,13 +5157,13 @@
                 }
             }
         },
-        "/api/v1/store/categories": {
+        "/v1/store/categories": {
             "get": {
                 "tags": [
                     "Store"
                 ],
                 "summary": "Lấy tất cả danh mục",
-                "operationId": "9c88da1a9d9a14a88ef30c84eecd1548",
+                "operationId": "0a2cfeeddf060c79e7755fa046024c40",
                 "responses": {
                     "200": {
                         "description": "Thành công",
@@ -5207,13 +5207,13 @@
                 }
             }
         },
-        "/api/v1/store/popular-medicine": {
+        "/v1/store/popular-medicine": {
             "get": {
                 "tags": [
                     "Store"
                 ],
                 "summary": "Lấy top 4 thuốc phổ biến nhất",
-                "operationId": "0116b35ddc1477888ac6f7eb83d5fee5",
+                "operationId": "27b68e7e36d03ccb5bdf53885dc81cd4",
                 "responses": {
                     "200": {
                         "description": "Thành công",
@@ -5269,6 +5269,119 @@
                         }
                     }
                 }
+            }
+        },
+        "/v1/store/deliver/orders": {
+            "get": {
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Lấy danh sách đơn hàng cho người giao hàng",
+                "description": "Lấy danh sách đơn hàng đang chờ xác nhận, đang vận chuyển, hoặc đang giao hàng",
+                "operationId": "getOrdersDeliver",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "_id": {
+                                                        "type": "string",
+                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                    },
+                                                    "user_id": {
+                                                        "type": "string",
+                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "PENDING"
+                                                    },
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "medicine_id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "price": {
+                                                                    "type": "number"
+                                                                },
+                                                                "item_total": {
+                                                                    "type": "number"
+                                                                },
+                                                                "medicine": {
+                                                                    "type": "object"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "sub_total": {
+                                                        "type": "number",
+                                                        "example": 30000
+                                                    },
+                                                    "shipping_fee": {
+                                                        "type": "number",
+                                                        "example": 15000
+                                                    },
+                                                    "discount": {
+                                                        "type": "number",
+                                                        "example": 0
+                                                    },
+                                                    "total_price": {
+                                                        "type": "number",
+                                                        "example": 45000
+                                                    },
+                                                    "shipping_address": {
+                                                        "type": "object"
+                                                    },
+                                                    "payment_method": {
+                                                        "type": "string",
+                                                        "example": "COD"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "user": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy danh sách đơn hàng thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/v1/admin/suppliers": {
