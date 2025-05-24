@@ -202,6 +202,63 @@ class OrderController extends Controller
     }
 
     #[Get(uri: "/store/orders/{id}/details", name: "store.orders.getDetails")]
+    /**
+     * @OA\Get(
+     *     path="/v1/store/orders/{id}/details",
+     *     operationId="getOrderDetails",
+     *     tags={"Orders"},
+     *     summary="Lấy chi tiết đơn hàng",
+     *     description="Trả về thông tin chi tiết của một đơn hàng cụ thể của người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của đơn hàng cần xem chi tiết",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="status", type="string", example="pending"),
+     *                 @OA\Property(property="items", type="array", 
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="medicine_id", type="string"),
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="quantity", type="integer"),
+     *                         @OA\Property(property="price", type="number"),
+     *                         @OA\Property(property="item_total", type="number"),
+     *                         @OA\Property(property="medicine", type="object")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="sub_total", type="number", example=30000),
+     *                 @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                 @OA\Property(property="discount", type="number", example=0),
+     *                 @OA\Property(property="total_price", type="number", example=45000),
+     *                 @OA\Property(property="shipping_address", type="object"),
+     *                 @OA\Property(property="payment_method", type="string", example="cod"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy chi tiết đơn hàng thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy đơn hàng",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Đơn hàng không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     )
+     * )
+     */
     public function getOrderDetails($id)
     {
         $userId = Auth::id();
@@ -218,5 +275,82 @@ class OrderController extends Controller
         })->toArray();
         $order->items = $orderItems;
         return $this->json($order, 'Lấy chi tiết đơn hàng thành công', 200);
+    }
+
+    #[Get(uri: "/admin/orders", name: "admin.orders.get", middleware: "role:admin")]
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/orders",
+     *     operationId="getOrdersAdmin",
+     *     tags={"Orders"},
+     *     summary="Lấy danh sách tất cả đơn hàng cho admin",
+     *     description="Trả về danh sách tất cả đơn hàng trong hệ thống (chỉ dành cho admin)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="data", type="array", 
+     *                     @OA\Items(
+     *                         @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="status", type="string", example="PENDING"),
+     *                         @OA\Property(property="items", type="array", 
+     *                             @OA\Items(
+     *                                 @OA\Property(property="medicine_id", type="string"),
+     *                                 @OA\Property(property="name", type="string"),
+     *                                 @OA\Property(property="quantity", type="integer"),
+     *                                 @OA\Property(property="price", type="number"),
+     *                                 @OA\Property(property="item_total", type="number"),
+     *                                 @OA\Property(property="medicine", type="object")
+     *                             )
+     *                         ),
+     *                         @OA\Property(property="sub_total", type="number", example=30000),
+     *                         @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                         @OA\Property(property="discount", type="number", example=0),
+     *                         @OA\Property(property="total_price", type="number", example=45000),
+     *                         @OA\Property(property="shipping_address", type="object"),
+     *                         @OA\Property(property="payment_method", type="string", example="cod"),
+     *                         @OA\Property(property="created_at", type="string", format="date-time")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="first_page_url", type="string"),
+     *                 @OA\Property(property="from", type="integer"),
+     *                 @OA\Property(property="last_page", type="integer"),
+     *                 @OA\Property(property="last_page_url", type="string"),
+     *                 @OA\Property(property="next_page_url", type="string"),
+     *                 @OA\Property(property="path", type="string"),
+     *                 @OA\Property(property="per_page", type="integer", example=10),
+     *                 @OA\Property(property="prev_page_url", type="string"),
+     *                 @OA\Property(property="to", type="integer"),
+     *                 @OA\Property(property="total", type="integer")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy danh sách đơn hàng thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập"),
+     *             @OA\Property(property="status", type="integer", example=403)
+     *         )
+     *     )
+     * )
+     */
+    public function getOrdersAdmin()
+    {
+        $orders = Order::paginate(10);
+        $orders->map(function ($order) {
+            $order->items = collect($order->items)->map(function ($item) {
+                $item['medicine'] = Medicine::find($item['medicine_id']);
+                return $item;
+            });
+        });
+        return $this->json($orders, 'Lấy danh sách đơn hàng thành công', 200);
     }
 }
