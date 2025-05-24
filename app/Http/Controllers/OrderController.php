@@ -466,7 +466,7 @@ class OrderController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/admin/orders/{id}/status",
+     *     path="/v1/admin/orders/{id}/status",
      *     operationId="updateOrderStatus",
      *     tags={"Orders"},
      *     summary="Cập nhật trạng thái đơn hàng",
@@ -527,7 +527,7 @@ class OrderController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/admin/orders/{id}/delete",
+     *     path="/v1/admin/orders/{id}/delete",
      *     operationId="deleteOrder",
      *     tags={"Orders"},
      *     summary="Xóa đơn hàng",
