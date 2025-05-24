@@ -346,10 +346,12 @@ class OrderController extends Controller
     {
         $orders = Order::paginate(10);
         $orders->map(function ($order) {
-            $order->items = collect($order->items)->map(function ($item) {
-                $item['medicine'] = Medicine::find($item['medicine_id']);
-                return $item;
-            });
+            $user = User::find($order->user_id);
+            $order->user = $user ? [
+                'firstname' => $user->firstname,
+                'lastname' => $user->lastname,
+                'profile_image' => $user->profile_image,
+            ] : null;
         });
         return $this->json($orders, 'Lấy danh sách đơn hàng thành công', 200);
     }
