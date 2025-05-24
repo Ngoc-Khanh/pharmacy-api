@@ -200,4 +200,23 @@ class OrderController extends Controller
         $cart->update(['items' => []]);
         return $this->json($order, 'Đặt hàng thành công', 200);
     }
+
+    #[Get(uri: "/store/orders/{id}/details", name: "store.orders.getDetails")]
+    public function getOrderDetails($id)
+    {
+        $userId = Auth::id();
+        $order = Order::where('user_id', $userId)->where('_id', $id)->first();
+        if (!$order) return $this->fail(null, 'Đơn hàng không tồn tại', 404);
+        $orderItems = $order->items;
+        $medicineIds = array_column($orderItems, 'medicine_id');
+        $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
+        $orderItems = collect($orderItems)->map(function ($item) use ($medicines) {
+            $medicineId = $item['medicine_id'];
+            $medicine = $medicines[$medicineId];
+            $item['medicine'] = $medicine;
+            return $item;
+        })->toArray();
+        $order->items = $orderItems;
+        return $this->json($order, 'Lấy chi tiết đơn hàng thành công', 200);
+    }
 }
