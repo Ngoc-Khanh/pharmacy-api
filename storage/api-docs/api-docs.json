@@ -4071,6 +4071,190 @@
                 ]
             }
         },
+        "/v1/admin/orders/{id}/details": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Lấy chi tiết đơn hàng (Admin)",
+                "description": "Trả về thông tin chi tiết của một đơn hàng cụ thể kèm thông tin người dùng",
+                "operationId": "getOrderDetailsAdmin",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần xem chi tiết",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "PENDING"
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "medicine_id": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer"
+                                                            },
+                                                            "price": {
+                                                                "type": "number"
+                                                            },
+                                                            "item_total": {
+                                                                "type": "number"
+                                                            },
+                                                            "medicine": {
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "sub_total": {
+                                                    "type": "number",
+                                                    "example": 30000
+                                                },
+                                                "shipping_fee": {
+                                                    "type": "number",
+                                                    "example": 15000
+                                                },
+                                                "discount": {
+                                                    "type": "number",
+                                                    "example": 0
+                                                },
+                                                "total_price": {
+                                                    "type": "number",
+                                                    "example": 45000
+                                                },
+                                                "shipping_address": {
+                                                    "type": "object"
+                                                },
+                                                "payment_method": {
+                                                    "type": "string",
+                                                    "example": "COD"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "username": {
+                                                            "type": "string"
+                                                        },
+                                                        "firstname": {
+                                                            "type": "string"
+                                                        },
+                                                        "lastname": {
+                                                            "type": "string"
+                                                        },
+                                                        "profile_image": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy chi tiết đơn hàng thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy đơn hàng",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng không tồn tại"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền truy cập"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin/orders/{id}/status": {
             "patch": {
                 "tags": [

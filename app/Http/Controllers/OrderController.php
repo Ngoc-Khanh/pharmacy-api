@@ -365,6 +365,105 @@ class OrderController extends Controller
         return $this->json($orders, 'Lấy danh sách đơn hàng thành công', 200);
     }
 
+    #[Get(uri: "/admin/orders/{id}/details", name: "admin.orders.getById", middleware: "role:admin")]
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/orders/{id}/details",
+     *     operationId="getOrderDetailsAdmin",
+     *     tags={"Orders"},
+     *     summary="Lấy chi tiết đơn hàng (Admin)",
+     *     description="Trả về thông tin chi tiết của một đơn hàng cụ thể kèm thông tin người dùng",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của đơn hàng cần xem chi tiết",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="status", type="string", example="PENDING"),
+     *                 @OA\Property(property="items", type="array", 
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="medicine_id", type="string"),
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="quantity", type="integer"),
+     *                         @OA\Property(property="price", type="number"),
+     *                         @OA\Property(property="item_total", type="number"),
+     *                         @OA\Property(property="medicine", type="object")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="sub_total", type="number", example=30000),
+     *                 @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                 @OA\Property(property="discount", type="number", example=0),
+     *                 @OA\Property(property="total_price", type="number", example=45000),
+     *                 @OA\Property(property="shipping_address", type="object"),
+     *                 @OA\Property(property="payment_method", type="string", example="COD"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="email", type="string"),
+     *                     @OA\Property(property="username", type="string"),
+     *                     @OA\Property(property="firstname", type="string"),
+     *                     @OA\Property(property="lastname", type="string"),
+     *                     @OA\Property(property="profile_image", type="string")
+     *                 )
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy chi tiết đơn hàng thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy đơn hàng",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Đơn hàng không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập"),
+     *             @OA\Property(property="status", type="integer", example=403)
+     *         )
+     *     )
+     * )
+     */
+    public function getOrderDetailsAdmin($id)
+    {
+        $order = Order::find($id);
+        if (!$order) return $this->fail(null, 'Đơn hàng không tồn tại', 404);
+        $user = User::find($order->user_id);
+        $order->user = $user ? [
+            'email' => $user->email,
+            'username' => $user->username,
+            'firstname' => $user->firstname,
+            'lastname' => $user->lastname,
+            'profile_image' => $user->profile_image,
+        ] : null;
+        $orderItems = $order->items;
+        $medicineIds = array_column($orderItems, 'medicine_id');
+        $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
+        $orderItems = collect($orderItems)->map(function ($item) use ($medicines) {
+            $medicineId = $item['medicine_id'];
+            $medicine = isset($medicines[$medicineId]) ? $medicines[$medicineId] : null;
+            $item['medicine'] = $medicine;
+            return $item;
+        })->toArray();
+        $order->setAttribute('items', $orderItems);
+        return $this->json($order, 'Lấy chi tiết đơn hàng thành công', 200);
+    }
+
     /**
      * @OA\Patch(
      *     path="/admin/orders/{id}/status",
