@@ -292,12 +292,17 @@ class OrderController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="current_page", type="integer", example=1),
-     *                 @OA\Property(property="data", type="array", 
+     *                 @OA\Property(property="data", type="array",
      *                     @OA\Items(
      *                         @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
      *                         @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="user", type="object",
+     *                             @OA\Property(property="firstname", type="string", example="Nguyen"),
+     *                             @OA\Property(property="lastname", type="string", example="Van A"),
+     *                             @OA\Property(property="profile_image", type="string", example="https://example.com/image.jpg")
+     *                         ),
      *                         @OA\Property(property="status", type="string", example="PENDING"),
-     *                         @OA\Property(property="items", type="array", 
+     *                         @OA\Property(property="items", type="array",
      *                             @OA\Items(
      *                                 @OA\Property(property="medicine_id", type="string"),
      *                                 @OA\Property(property="name", type="string"),
@@ -316,16 +321,16 @@ class OrderController extends Controller
      *                         @OA\Property(property="created_at", type="string", format="date-time")
      *                     )
      *                 ),
-     *                 @OA\Property(property="first_page_url", type="string"),
-     *                 @OA\Property(property="from", type="integer"),
-     *                 @OA\Property(property="last_page", type="integer"),
-     *                 @OA\Property(property="last_page_url", type="string"),
-     *                 @OA\Property(property="next_page_url", type="string"),
-     *                 @OA\Property(property="path", type="string"),
+     *                 @OA\Property(property="first_page_url", type="string", example="http://localhost/v1/admin/orders?page=1"),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=5),
+     *                 @OA\Property(property="last_page_url", type="string", example="http://localhost/v1/admin/orders?page=5"),
+     *                 @OA\Property(property="next_page_url", type="string", example="http://localhost/v1/admin/orders?page=2"),
+     *                 @OA\Property(property="path", type="string", example="http://localhost/v1/admin/orders"),
      *                 @OA\Property(property="per_page", type="integer", example=10),
-     *                 @OA\Property(property="prev_page_url", type="string"),
-     *                 @OA\Property(property="to", type="integer"),
-     *                 @OA\Property(property="total", type="integer")
+     *                 @OA\Property(property="prev_page_url", type="string", example=null),
+     *                 @OA\Property(property="to", type="integer", example=10),
+     *                 @OA\Property(property="total", type="integer", example=50)
      *             ),
      *             @OA\Property(property="message", type="string", example="Lấy danh sách đơn hàng thành công"),
      *             @OA\Property(property="status", type="integer", example=200)
@@ -348,6 +353,8 @@ class OrderController extends Controller
         $orders->map(function ($order) {
             $user = User::find($order->user_id);
             $order->user = $user ? [
+                'email' => $user->email,
+                'username' => $user->username,
                 'firstname' => $user->firstname,
                 'lastname' => $user->lastname,
                 'profile_image' => $user->profile_image,

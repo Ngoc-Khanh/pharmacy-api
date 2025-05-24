@@ -3905,6 +3905,23 @@
                                                                 "type": "string",
                                                                 "example": "550e8400-e29b-41d4-a716-446655440000"
                                                             },
+                                                            "user": {
+                                                                "properties": {
+                                                                    "firstname": {
+                                                                        "type": "string",
+                                                                        "example": "Nguyen"
+                                                                    },
+                                                                    "lastname": {
+                                                                        "type": "string",
+                                                                        "example": "Van A"
+                                                                    },
+                                                                    "profile_image": {
+                                                                        "type": "string",
+                                                                        "example": "https://example.com/image.jpg"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
                                                             "status": {
                                                                 "type": "string",
                                                                 "example": "PENDING"
@@ -3967,35 +3984,44 @@
                                                     }
                                                 },
                                                 "first_page_url": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "http://localhost/v1/admin/orders?page=1"
                                                 },
                                                 "from": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "example": 1
                                                 },
                                                 "last_page": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "example": 5
                                                 },
                                                 "last_page_url": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "http://localhost/v1/admin/orders?page=5"
                                                 },
                                                 "next_page_url": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "http://localhost/v1/admin/orders?page=2"
                                                 },
                                                 "path": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "http://localhost/v1/admin/orders"
                                                 },
                                                 "per_page": {
                                                     "type": "integer",
                                                     "example": 10
                                                 },
                                                 "prev_page_url": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": null
                                                 },
                                                 "to": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "example": 10
                                                 },
                                                 "total": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "example": 50
                                                 }
                                             },
                                             "type": "object"
