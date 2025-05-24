@@ -347,6 +347,48 @@ class AccountController extends Controller
     }
 
     #[Post("/addresses/set-default-address/{id}", "account.addresses.setDefaultAddress")]
+    /**
+     * @OA\Post(
+     *     path="/v1/store/account/addresses/set-default-address/{id}",
+     *     operationId="setDefaultAddress",
+     *     tags={"Account"},
+     *     summary="Đặt địa chỉ mặc định",
+     *     description="Đặt một địa chỉ làm địa chỉ mặc định cho người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ cần đặt làm mặc định",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đặt địa chỉ mặc định thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="is_default", type="boolean", example=true)
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Đặt địa chỉ mặc định thành công"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy địa chỉ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy địa chỉ"),
+     *             @OA\Property(property="status", type="integer", example=404),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     )
+     * )
+     */
     public function setDefaultAddress(Request $request, string $id)
     {
         $user = $request->user();
