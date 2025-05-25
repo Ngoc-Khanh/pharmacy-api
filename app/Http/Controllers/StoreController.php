@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OrderStatus;
 use App\Models\Category;
 use App\Models\Medicine;
 use App\Models\Order;
@@ -246,7 +247,7 @@ class StoreController extends Controller
     #[Get(uri: "/deliver/orders", name: "deliver.orders.get")]
     public function getOrdersDeliver()
     {
-        $orders = Order::whereIn('status', ['PENDING', 'SHIPPING', 'DELIVERING'])->get();
+        $orders = Order::whereIn('status', [OrderStatus::PENDING, OrderStatus::PROCESSING, OrderStatus::SHIPPED, OrderStatus::DELIVERED])->get();
         $orders->map(function ($order) {
             $order->items = collect($order->items)->map(function ($item) {
                 $item['medicine'] = Medicine::find($item['medicine_id']);
