@@ -7,5 +7,5 @@ use App\Http\Controllers\WebsiteController;
 //     return view('welcome');
 // });
 
-// Website routes
-Route::get('/', [WebsiteController::class, 'index']);
+// Website routes - API Home Page
+Route::get('/', [WebsiteController::class, 'home']);
