@@ -259,6 +259,91 @@ class StoreController extends Controller
     }
 
     #[Post(uri: "/deliver/orders/{id}/update-status", name: "deliver.orders.updateStatus")]
+    /**
+     * @OA\Post(
+     *     path="/v1/store/deliver/orders/{id}/update-status",
+     *     operationId="updateDeliveryOrderStatus",
+     *     tags={"Store"},
+     *     summary="Cập nhật trạng thái đơn hàng cho người giao hàng",
+     *     description="Cập nhật trạng thái đơn hàng (PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID đơn hàng",
+     *         required=true,
+     *         @OA\Schema(type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Thông tin trạng thái mới",
+     *         @OA\JsonContent(
+     *             required={"status"},
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 enum={"PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"},
+     *                 example="SHIPPED",
+     *                 description="Trạng thái mới của đơn hàng"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật trạng thái đơn hàng thành công"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="status", type="string", example="SHIPPED"),
+     *                 @OA\Property(property="items", type="array", 
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="medicine_id", type="string"),
+     *                         @OA\Property(property="name", type="string"),
+     *                         @OA\Property(property="quantity", type="integer"),
+     *                         @OA\Property(property="price", type="number"),
+     *                         @OA\Property(property="item_total", type="number")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="sub_total", type="number", example=30000),
+     *                 @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                 @OA\Property(property="discount", type="number", example=0),
+     *                 @OA\Property(property="total_price", type="number", example=45000),
+     *                 @OA\Property(property="shipping_address", type="object"),
+     *                 @OA\Property(property="payment_method", type="string", example="COD"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time")
+     *             ),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Đơn hàng không tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Đơn hàng không tồn tại"),
+     *             @OA\Property(property="data", type="null", example=null),
+     *             @OA\Property(property="status", type="integer", example=404)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Trạng thái không hợp lệ"),
+     *             @OA\Property(property="data", type="null", example=null),
+     *             @OA\Property(property="status", type="integer", example=400)
+     *         )
+     *     )
+     * )
+     */
     public function updateOrderStatus($id, Request $request)
     {
         $order = Order::find($id);
