@@ -257,4 +257,14 @@ class StoreController extends Controller
         $orders->load('user');
         return $this->json($orders, 'Lấy danh sách đơn hàng thành công', 200);
     }
+
+    #[Post(uri: "/deliver/orders/{id}/update-status", name: "deliver.orders.updateStatus")]
+    public function updateOrderStatus($id, Request $request)
+    {
+        $order = Order::find($id);
+        if (!$order) return $this->json(null, 'Đơn hàng không tồn tại', 404);
+        $order->status = $request->status;
+        $order->save();
+        return $this->json($order, 'Cập nhật trạng thái đơn hàng thành công', 200);
+    }
 }
