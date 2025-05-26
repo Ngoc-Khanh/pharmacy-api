@@ -161,7 +161,7 @@ class AuthController extends Controller
       'phone' => $validated['phone'],
       'profile_image' => [
         'public_id' => null,
-        'url' => "./avatars/" . collect(['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg', '9.jpg', '10.jpg'])->random(),
+        'url' => "./avatars/" . collect(['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg'])->random(),
         'alt' => $validated['username'] . "-alt",
       ],
       'status' => UserStatus::PENDING->value,

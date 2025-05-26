@@ -209,7 +209,11 @@ class UserController extends Controller
       'lastname' => $request->input('lastname') ?? 'Guest' . rand(1000, 9999),
       'password' => bcrypt($request->input('password')),
       'phone' => $request->input('phone'),
-      'profile_image' => rand(1, 10) . '.jpg',
+      'profile_image' => [
+        'public_id' => null,
+        'url' => "./avatars/" . collect(['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg'])->random(),
+        'alt' => $request->input('username') . "-alt",
+      ],
       'role' => $request->input('role'),
       'status' => $request->input('status')
     ]);
