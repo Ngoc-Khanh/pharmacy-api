@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\OrderStatus;
 use App\Models\Category;
+use App\Models\Invoice;
 use App\Models\Medicine;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -350,6 +352,16 @@ class StoreController extends Controller
         if (!$order) return $this->json(null, 'Đơn hàng không tồn tại', 404);
         $order->status = $request->status;
         $order->save();
+        if ($request->status == OrderStatus::COMPLETED->value) {
+            $invoice = Invoice::where('order_id', $id)->first();
+            if ($invoice) {
+                $invoice->status = InvoiceStatus::PAID->value;
+                $invoice->save();
+            }
+        } else if ($request->status == OrderStatus::CANCELLED->value) {
+            $invoice = Invoice::where('order_id', $id)->first();
+            if ($invoice) $invoice->delete();
+        }
         return $this->json($order, 'Cập nhật trạng thái đơn hàng thành công', 200);
     }
 }

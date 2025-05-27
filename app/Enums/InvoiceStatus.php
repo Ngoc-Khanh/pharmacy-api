@@ -4,10 +4,10 @@ namespace App\Enums;
 
 enum InvoiceStatus: string
 {
-    case PENDING = 'pending';
-    case PAID = 'paid';
-    case CANCELLED = 'cancelled';
-    case REFUNDED = 'refunded';
+    case PENDING = 'PENDING';
+    case PAID = 'PAID';
+    case CANCELLED = 'CANCELLED';
+    case REFUNDED = 'REFUNDED';
 
     public function label(): string
     {
