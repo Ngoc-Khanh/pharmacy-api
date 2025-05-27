@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Enums\OrderStatus;
 use App\Models\User;
 use App\Models\Medicine;
+use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -26,6 +27,13 @@ use Spatie\RouteAttributes\Attributes\Patch;
  */
 class OrderController extends Controller
 {
+    protected $invoiceService;
+
+    public function __construct(InvoiceService $invoiceService)
+    {
+        $this->invoiceService = $invoiceService;
+    }
+
     #[Get(uri: "/store/orders", name: "store.orders")]
     /**
      * @OA\Get(
@@ -74,7 +82,7 @@ class OrderController extends Controller
      *     operationId="addOrders",
      *     tags={"Orders"},
      *     summary="Tạo đơn hàng mới",
-     *     description="Tạo đơn hàng mới từ giỏ hàng của người dùng đã đăng nhập",
+     *     description="Tạo đơn hàng mới từ giỏ hàng của người dùng đã đăng nhập và tạo hóa đơn tương ứng",
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -89,39 +97,60 @@ class OrderController extends Controller
      *         description="Đặt hàng thành công",
      *         @OA\JsonContent(
      *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                 @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                 @OA\Property(property="status", type="string", example="pending"),
-     *                 @OA\Property(property="items", type="array", 
-     *                     @OA\Items(
-     *                         @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                         @OA\Property(property="quantity", type="integer", example=2),
-     *                         @OA\Property(property="price", type="number", example=15000),
-     *                         @OA\Property(property="item_total", type="number", example=30000),
-     *                         @OA\Property(property="medicine", type="object",
-     *                             @OA\Property(property="name", type="string", example="Paracetamol"),
-     *                             @OA\Property(property="thumbnail", type="object",
-     *                                 @OA\Property(property="url", type="string", example="https://example.com/images/paracetamol.jpg"),
-     *                                 @OA\Property(property="alt", type="string", example="paracetamol-alt")
+     *                 @OA\Property(property="order", type="object",
+     *                     @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="status", type="string", example="pending"),
+     *                     @OA\Property(property="items", type="array", 
+     *                         @OA\Items(
+     *                             @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                             @OA\Property(property="quantity", type="integer", example=2),
+     *                             @OA\Property(property="price", type="number", example=15000),
+     *                             @OA\Property(property="item_total", type="number", example=30000),
+     *                             @OA\Property(property="medicine", type="object",
+     *                                 @OA\Property(property="name", type="string", example="Paracetamol"),
+     *                                 @OA\Property(property="thumbnail", type="object",
+     *                                     @OA\Property(property="url", type="string", example="https://example.com/images/paracetamol.jpg"),
+     *                                     @OA\Property(property="alt", type="string", example="paracetamol-alt")
+     *                                 )
      *                             )
      *                         )
-     *                     )
+     *                     ),
+     *                     @OA\Property(property="sub_total", type="number", example=30000),
+     *                     @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                     @OA\Property(property="discount", type="number", example=0),
+     *                     @OA\Property(property="total_price", type="number", example=45000),
+     *                     @OA\Property(property="shipping_address", type="object",
+     *                         @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
+     *                         @OA\Property(property="phone", type="string", example="0901234567"),
+     *                         @OA\Property(property="address_line1", type="string", example="123 Đường Nguyễn Huệ"),
+     *                         @OA\Property(property="city", type="string", example="Quận 1"),
+     *                         @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
+     *                         @OA\Property(property="country", type="string", example="Việt Nam")
+     *                     ),
+     *                     @OA\Property(property="payment_method", type="string", example="COD"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2023-06-15T14:30:00Z")
      *                 ),
-     *                 @OA\Property(property="sub_total", type="number", example=30000),
-     *                 @OA\Property(property="shipping_fee", type="number", example=15000),
-     *                 @OA\Property(property="discount", type="number", example=0),
-     *                 @OA\Property(property="total_price", type="number", example=45000),
-     *                 @OA\Property(property="shipping_address", type="object",
-     *                     @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                     @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
-     *                     @OA\Property(property="phone", type="string", example="0901234567"),
-     *                     @OA\Property(property="address_line1", type="string", example="123 Đường Nguyễn Huệ"),
-     *                     @OA\Property(property="city", type="string", example="Quận 1"),
-     *                     @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
-     *                     @OA\Property(property="country", type="string", example="Việt Nam")
-     *                 ),
-     *                 @OA\Property(property="payment_method", type="string", example="COD"),
-     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2023-06-15T14:30:00Z")
+     *                 @OA\Property(property="invoice", type="object",
+     *                     @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="order_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="invoice_number", type="string", example="INV-20230615-001"),
+     *                     @OA\Property(property="items", type="array", 
+     *                         @OA\Items(
+     *                             @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                             @OA\Property(property="quantity", type="integer", example=2),
+     *                             @OA\Property(property="price", type="number", example=15000),
+     *                             @OA\Property(property="item_total", type="number", example=30000)
+     *                         )
+     *                     ),
+     *                     @OA\Property(property="total_price", type="number", example=45000),
+     *                     @OA\Property(property="payment_method", type="string", example="cod"),
+     *                     @OA\Property(property="issued_at", type="string", format="date-time", example="2023-06-15T14:30:00Z"),
+     *                     @OA\Property(property="status", type="string", example="pending"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2023-06-15T14:30:00Z")
+     *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Đặt hàng thành công"),
      *             @OA\Property(property="status", type="integer", example=200)
@@ -200,6 +229,7 @@ class OrderController extends Controller
             'created_at' => now(),
         ]);
         $cart->update(['items' => []]);
+        $this->invoiceService->createFromOrder($order);
         return $this->json($order, 'Đặt hàng thành công', 200);
     }
 
@@ -271,8 +301,12 @@ class OrderController extends Controller
         $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
         $orderItems = collect($orderItems)->map(function ($item) use ($medicines) {
             $medicineId = $item['medicine_id'];
-            $medicine = $medicines[$medicineId];
-            $item['medicine'] = $medicine;
+            if (isset($medicines[$medicineId])) {
+                $medicine = $medicines[$medicineId];
+                $item['medicine'] = $medicine;
+            } else {
+                $item['medicine'] = null;
+            }
             return $item;
         })->toArray();
         $order->items = $orderItems;
