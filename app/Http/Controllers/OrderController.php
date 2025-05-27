@@ -51,14 +51,27 @@ class OrderController extends Controller
      *                @OA\Items(
      *                    @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
      *                    @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                    @OA\Property(property="status", type="string", example="pending"),
-     *                    @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                    @OA\Property(property="status", type="string", example="PENDING"),
+     *                    @OA\Property(property="items", type="array", 
+     *                        @OA\Items(
+     *                            type="object",
+     *                            @OA\Property(property="medicine_id", type="string"),
+     *                            @OA\Property(property="name", type="string"),
+     *                            @OA\Property(property="quantity", type="integer"),
+     *                            @OA\Property(property="price", type="number"),
+     *                            @OA\Property(property="item_total", type="number"),
+     *                            @OA\Property(property="medicine", type="object",
+     *                                @OA\Property(property="name", type="string"),
+     *                                @OA\Property(property="thumbnail", type="string")
+     *                            )
+     *                        )
+     *                    ),
      *                    @OA\Property(property="sub_total", type="number", example=30000),
      *                    @OA\Property(property="shipping_fee", type="number", example=15000),
      *                    @OA\Property(property="discount", type="number", example=0),
      *                    @OA\Property(property="total_price", type="number", example=45000),
      *                    @OA\Property(property="shipping_address", type="object"),
-     *                    @OA\Property(property="payment_method", type="string", example="cod"),
+     *                    @OA\Property(property="payment_method", type="string", example="COD"),
      *                    @OA\Property(property="created_at", type="string", format="date-time", example="2023-06-15T14:30:00Z")
      *                )
      *             ),
@@ -72,6 +85,32 @@ class OrderController extends Controller
     {
         $userId = Auth::id();
         $orders = Order::where('user_id', $userId)->get();
+        // Lấy tất cả medicine_id từ các đơn hàng
+        $medicineIds = [];
+        foreach ($orders as $order) {
+            foreach ($order->items as $item) {
+                if (isset($item['medicine_id'])) {
+                    $medicineIds[] = $item['medicine_id'];
+                }
+            }
+        }
+        // Lấy thông tin thuốc
+        $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
+        // Thêm thông tin thuốc vào từng item trong đơn hàng
+        foreach ($orders as $order) {
+            $orderItems = $order->items;
+            $updatedItems = collect($orderItems)->map(function ($item) use ($medicines) {
+                $medicineId = $item['medicine_id'] ?? null;
+                if ($medicineId && isset($medicines[$medicineId])) {
+                    $item['medicine'] = [
+                        'name' => $medicines[$medicineId]->name,
+                        'thumbnail' => $medicines[$medicineId]->thumbnail
+                    ];
+                }
+                return $item;
+            })->toArray();
+            $order->setAttribute('items', $updatedItems);
+        }
         return $this->json($orders, 'Lấy danh sách đơn hàng thành công', 200);
     }
 

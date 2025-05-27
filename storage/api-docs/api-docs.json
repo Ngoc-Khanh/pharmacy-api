@@ -2468,6 +2468,93 @@
                 ]
             }
         },
+        "/v1/store/invoices/list": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Lấy danh sách hóa đơn của người dùng",
+                "description": "Trả về danh sách tất cả hóa đơn của người dùng đã đăng nhập",
+                "operationId": "getUserInvoices",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "_id": {
+                                                        "type": "string",
+                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                    },
+                                                    "order_id": {
+                                                        "type": "string",
+                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                    },
+                                                    "user_id": {
+                                                        "type": "string",
+                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                    },
+                                                    "invoice_number": {
+                                                        "type": "string",
+                                                        "example": "INV-20230615-001"
+                                                    },
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "total_price": {
+                                                        "type": "number",
+                                                        "example": 45000
+                                                    },
+                                                    "payment_method": {
+                                                        "type": "string",
+                                                        "example": "COD"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "PAID"
+                                                    },
+                                                    "issued_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy danh sách hóa đơn thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/invoices/create": {
             "post": {
                 "tags": [
@@ -3431,11 +3518,39 @@
                                                     },
                                                     "status": {
                                                         "type": "string",
-                                                        "example": "pending"
+                                                        "example": "PENDING"
                                                     },
                                                     "items": {
                                                         "type": "array",
                                                         "items": {
+                                                            "properties": {
+                                                                "medicine_id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "price": {
+                                                                    "type": "number"
+                                                                },
+                                                                "item_total": {
+                                                                    "type": "number"
+                                                                },
+                                                                "medicine": {
+                                                                    "properties": {
+                                                                        "name": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "thumbnail": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                }
+                                                            },
                                                             "type": "object"
                                                         }
                                                     },
@@ -3460,7 +3575,7 @@
                                                     },
                                                     "payment_method": {
                                                         "type": "string",
-                                                        "example": "cod"
+                                                        "example": "COD"
                                                     },
                                                     "created_at": {
                                                         "type": "string",
