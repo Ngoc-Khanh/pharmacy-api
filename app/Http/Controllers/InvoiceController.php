@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
@@ -21,6 +22,46 @@ use Spatie\RouteAttributes\Attributes\Middleware;
  */
 class InvoiceController extends Controller
 {
+    #[Get(uri: "/store/invoices/list", name: "store.invoices.list")]
+    /**
+     * @OA\Get(
+     *     path="/v1/store/invoices/list",
+     *     operationId="getUserInvoices",
+     *     tags={"Invoices"},
+     *     summary="Lấy danh sách hóa đơn của người dùng",
+     *     description="Trả về danh sách tất cả hóa đơn của người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", 
+     *                @OA\Items(
+     *                    @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                    @OA\Property(property="order_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                    @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                    @OA\Property(property="invoice_number", type="string", example="INV-20230615-001"),
+     *                    @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                    @OA\Property(property="total_price", type="number", example=45000),
+     *                    @OA\Property(property="payment_method", type="string", example="COD"),
+     *                    @OA\Property(property="status", type="string", example="PAID"),
+     *                    @OA\Property(property="issued_at", type="string", format="date-time"),
+     *                    @OA\Property(property="created_at", type="string", format="date-time")
+     *                )
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy danh sách hóa đơn thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     )
+     * )
+     */
+    public function getInvoices()
+    {
+        $userId = Auth::id();
+        $invoices = Invoice::where('user_id', $userId)->get();
+        return $this->json($invoices, 'Lấy danh sách hóa đơn thành công', 200);
+    }
+
     #[Post(uri: "/store/invoices/create", name: "store.invoices.create")]
     /**
      * @OA\Post(
