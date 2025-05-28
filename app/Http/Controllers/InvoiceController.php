@@ -8,6 +8,7 @@ use App\Models\Medicine;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
@@ -64,6 +65,70 @@ class InvoiceController extends Controller
     }
 
     #[Get(uri: "/store/invoices/{id}/details", name: "store.invoices.details")]
+    /**
+     * @OA\Get(
+     *     path="/v1/store/invoices/{id}/details",
+     *     operationId="getInvoiceDetails",
+     *     tags={"Invoices"},
+     *     summary="Lấy chi tiết hóa đơn",
+     *     description="Trả về thông tin chi tiết của một hóa đơn theo ID",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của hóa đơn",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy chi tiết hóa đơn thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="invoice_number", type="string", example="INV-20230615-001"),
+     *                 @OA\Property(property="order", type="object",
+     *                     @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                     @OA\Property(property="discount", type="number", example=5000),
+     *                     @OA\Property(property="shipping_address", type="object",
+     *                         @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
+     *                         @OA\Property(property="phone", type="string", example="0123456789"),
+     *                         @OA\Property(property="address", type="string", example="123 Đường ABC, Phường XYZ")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="items", type="array", 
+     *                     @OA\Items(type="object",
+     *                         @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="quantity", type="integer", example=2),
+     *                         @OA\Property(property="price", type="number", example=15000),
+     *                         @OA\Property(property="medicine", type="object",
+     *                             @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                             @OA\Property(property="name", type="string", example="Paracetamol"),
+     *                             @OA\Property(property="thumbnail", type="object",
+     *                                 @OA\Property(property="url", type="string", example="https://example.com/images/paracetamol.jpg")
+     *                             )
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="total_price", type="number", example=45000),
+     *                 @OA\Property(property="payment_method", type="string", example="COD"),
+     *                 @OA\Property(property="status", type="string", example="PAID", description="PENDING, PAID, CANCELLED, REFUNDED")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy chi tiết hóa đơn thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Hóa đơn không tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Hóa đơn không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=400)
+     *         )
+     *     )
+     * )
+     */
     public function invoicesDetails($id)
     {
         $userId = Auth::id();
@@ -71,11 +136,18 @@ class InvoiceController extends Controller
         if (!$invoice) return $this->fail(null, 'Hóa đơn không tồn tại', 400);
         $order = Order::where('_id', $invoice->order_id)->first();
         if (!$order) return $this->fail(null, 'Đơn hàng không tồn tại', 400);
+        $invoice->order = [
+            'shipping_fee' => $order->shipping_fee,
+            'discount' => $order->discount,
+            'shipping_address' => $order->shipping_address,
+        ];
         $orderItems = $order->items;
         $medicineIds = array_column($orderItems, 'medicine_id');
         $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
         $orderItems = collect($orderItems)->map(function ($item) use ($medicines) {
-            $item['medicine'] = $medicines[$item['medicine_id']];
+            if (isset($medicines[$item['medicine_id']])) {
+                $item['medicine'] = $medicines[$item['medicine_id']];
+            }
             return $item;
         });
         $invoice->items = $orderItems;
@@ -180,5 +252,186 @@ class InvoiceController extends Controller
             'created_at' => now(),
         ]);
         return $this->json($invoice, 'Tạo hóa đơn thành công', 200);
+    }
+
+    #[Get(uri: "/admin/invoices/list", name: "admin.invoices.list", middleware: "role:admin")]
+    /**
+     * @OA\Get(
+     *     path="/v1/store/admin/invoices/list",
+     *     operationId="adminInvoicesList",
+     *     tags={"Invoices"},
+     *     summary="Lấy danh sách tất cả hóa đơn",
+     *     description="Trả về danh sách tất cả hóa đơn trong hệ thống (chỉ dành cho admin)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy danh sách hóa đơn thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", 
+     *                 @OA\Items(
+     *                     @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="order_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="invoice_number", type="string", example="INV-20240310-001"),
+     *                     @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="total_price", type="number", example=150000),
+     *                     @OA\Property(property="payment_method", type="string", example="bank_transfer"),
+     *                     @OA\Property(property="issued_at", type="string", format="date-time"),
+     *                     @OA\Property(property="status", type="string", example="pending"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time")
+     *                 )
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy danh sách hóa đơn thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized"),
+     *             @OA\Property(property="status", type="integer", example=401)
+     *         )
+     *     )
+     * )
+     */
+    public function invoiceAdminList()
+    {
+        $invoices = Invoice::all();
+        return $this->json($invoices, 'Lấy danh sách hóa đơn thành công', 200);
+    }
+
+    #[Post(uri: "/admin/invoices/create-with-no-order", name: "admin.invoices.create-with-no-order", middleware: "role:admin")]
+    /**
+     * @OA\Post(
+     *     path="/v1/store/admin/invoices/create-with-no-order",
+     *     operationId="adminCreateInvoiceWithNoOrder",
+     *     tags={"Invoices"},
+     *     summary="Tạo hóa đơn không kèm đơn hàng",
+     *     description="Tạo một hóa đơn mới không liên kết với đơn hàng (chỉ dành cho admin)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"user_id", "invoice_number", "items", "payment_method", "issued_at", "status"},
+     *             @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *             @OA\Property(property="invoice_number", type="string", example="INV-20240310-001"),
+     *             @OA\Property(property="items", type="array", 
+     *                 @OA\Items(
+     *                     @OA\Property(property="medicine_id", type="string"),
+     *                     @OA\Property(property="quantity", type="integer"),
+     *                     @OA\Property(property="price", type="number")
+     *                 )
+     *             ),
+     *             @OA\Property(property="payment_method", type="string", example="bank_transfer"),
+     *             @OA\Property(property="issued_at", type="string", format="date-time"),
+     *             @OA\Property(property="status", type="string", example="pending")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tạo hóa đơn thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="user_id", type="string"),
+     *                 @OA\Property(property="invoice_number", type="string"),
+     *                 @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="payment_method", type="string"),
+     *                 @OA\Property(property="issued_at", type="string", format="date-time"),
+     *                 @OA\Property(property="status", type="string"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Thêm hóa đơn thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="The user id field is required."),
+     *             @OA\Property(property="status", type="integer", example=422),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized"),
+     *             @OA\Property(property="status", type="integer", example=401)
+     *         )
+     *     )
+     * )
+     */
+    public function createInvoiceWithNoOrder(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|string',
+            'invoice_number' => 'required|string',
+            'items' => 'required|array',
+            'payment_method' => 'required|string',
+            'issued_at' => 'required|date',
+            'status' => 'required|string',
+        ]);
+        $invoice = Invoice::create($request->all());
+        return $this->json($invoice, 'Thêm hóa đơn thành công', 200);
+    }
+
+    #[Delete(uri: "/admin/invoices/{id}/delete", name: "admin.invoices.delete", middleware: "role:admin")]
+    /**
+     * @OA\Delete(
+     *     path="/v1/store/admin/invoices/{id}/delete",
+     *     operationId="adminDeleteInvoice",
+     *     tags={"Invoices"},
+     *     summary="Xóa hóa đơn",
+     *     description="Xóa một hóa đơn khỏi hệ thống (chỉ dành cho admin)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của hóa đơn cần xóa",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Xóa hóa đơn thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Xóa hóa đơn thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Hóa đơn không tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Hóa đơn không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=400)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized"),
+     *             @OA\Property(property="status", type="integer", example=401)
+     *         )
+     *     )
+     * )
+     */
+    public function deleteInvoice($id)
+    {
+        $invoice = Invoice::where('_id', $id)->first();
+        if (!$invoice) return $this->fail(null, 'Hóa đơn không tồn tại', 400);
+        $invoice->delete();
+        return $this->json(null, 'Xóa hóa đơn thành công', 200);
     }
 }
