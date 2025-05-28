@@ -38,4 +38,20 @@ class ImageUtils
       ];
     }
   }
+
+  public function deleteImage(string $publicId)
+  {
+    try {
+      $res = $this->cloudinary->uploadApi()->destroy($publicId);
+      return [
+        'success' => true,
+        'message' => 'Xóa ảnh thành công',
+      ];
+    } catch (Exception $e) {
+      return [
+        'success' => false,
+        'message' => $e->getMessage(),
+      ];
+    }
+  }
 }

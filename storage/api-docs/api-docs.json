@@ -832,6 +832,159 @@
                 ]
             }
         },
+        "/v1/store/account/profile/upload-avatar": {
+            "post": {
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Tải lên ảnh đại diện",
+                "description": "Tải lên và cập nhật ảnh đại diện của người dùng đã đăng nhập",
+                "operationId": "uploadAvatar",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "profile_image"
+                                ],
+                                "properties": {
+                                    "profile_image": {
+                                        "description": "Ảnh đại diện (jpeg, png, jpg, tối đa 5MB)",
+                                        "type": "file"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật ảnh đại diện thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "user123"
+                                                },
+                                                "profile_image": {
+                                                    "properties": {
+                                                        "public_id": {
+                                                            "type": "string",
+                                                            "example": "profiles/abcdef123456"
+                                                        },
+                                                        "url": {
+                                                            "type": "string",
+                                                            "example": "https://res.cloudinary.com/example/image/upload/v1234567890/profiles/abcdef123456.jpg"
+                                                        },
+                                                        "alt": {
+                                                            "type": "string",
+                                                            "example": "user123-alt"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật ảnh đại diện thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Trường ảnh đại diện là bắt buộc"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không thể tải ảnh: Error message"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/account/profile/change-password": {
             "patch": {
                 "tags": [
