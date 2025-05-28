@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Medicine;
 use App\Models\User;
+use App\Utils\ImageUtils;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -474,6 +475,97 @@ class AccountController extends Controller
         $user->save();
         return $this->json($user, 'Cập nhật thông tin tài khoản thành công', 200);
     }
+
+    #[Post(uri: "/profile/upload-avatar", name: "account.profile.upload-avatar")]
+    /**
+     * @OA\Post(
+     *     path="/v1/store/account/profile/upload-avatar",
+     *     operationId="uploadAvatar",
+     *     tags={"Account"},
+     *     summary="Tải lên ảnh đại diện",
+     *     description="Tải lên và cập nhật ảnh đại diện của người dùng đã đăng nhập",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"profile_image"},
+     *                 @OA\Property(
+     *                     property="profile_image",
+     *                     type="file",
+     *                     description="Ảnh đại diện (jpeg, png, jpg, tối đa 5MB)"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật ảnh đại diện thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="username", type="string", example="user123"),
+     *                 @OA\Property(property="profile_image", type="object",
+     *                     @OA\Property(property="public_id", type="string", example="profiles/abcdef123456"),
+     *                     @OA\Property(property="url", type="string", example="https://res.cloudinary.com/example/image/upload/v1234567890/profiles/abcdef123456.jpg"),
+     *                     @OA\Property(property="alt", type="string", example="user123-alt")
+     *                 )
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Cập nhật ảnh đại diện thành công"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Trường ảnh đại diện là bắt buộc"),
+     *             @OA\Property(property="status", type="integer", example=422),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Không thể tải ảnh: Error message"),
+     *             @OA\Property(property="status", type="integer", example=500),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null")
+     *         )
+     *     )
+     * )
+     */
+    public function uploadAvatar(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'profile_image' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+        if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
+        $user = $request->user();
+        if (!$user) return $this->fail(null, 'Người dùng không tồn tại', 404);
+        $imageUtils = new ImageUtils();
+        if (isset($user->profile_image) && isset($user->profile_image['public_id'])) $imageUtils->deleteImage($user->profile_image['public_id']);
+        $uploadResult = $imageUtils->uploadImage(
+            $request->file('profile_image'),
+            'profiles'
+        );
+        if (!$uploadResult['success']) return $this->fail(null, 'Không thể tải ảnh: ' . $uploadResult['message'], 500);
+        $user->profile_image = [
+            'public_id' => $uploadResult['public_id'],
+            'url' => $uploadResult['url'],
+            'alt' => $user->slug . '-alt',
+        ];
+        $user->save();
+        return $this->json($user, 'Cập nhật ảnh đại diện thành công', 200);
+    }
+
 
     #[Patch(uri: "/profile/change-password", name: "account.profile.change-password")]
     /**
