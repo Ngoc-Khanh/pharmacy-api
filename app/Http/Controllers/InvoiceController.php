@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
+use App\Models\Medicine;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,6 +61,25 @@ class InvoiceController extends Controller
         $userId = Auth::id();
         $invoices = Invoice::where('user_id', $userId)->get();
         return $this->json($invoices, 'Lấy danh sách hóa đơn thành công', 200);
+    }
+
+    #[Get(uri: "/store/invoices/{id}/details", name: "store.invoices.details")]
+    public function invoicesDetails($id)
+    {
+        $userId = Auth::id();
+        $invoice = Invoice::where('user_id', $userId)->where('_id', $id)->first();
+        if (!$invoice) return $this->fail(null, 'Hóa đơn không tồn tại', 400);
+        $order = Order::where('_id', $invoice->order_id)->first();
+        if (!$order) return $this->fail(null, 'Đơn hàng không tồn tại', 400);
+        $orderItems = $order->items;
+        $medicineIds = array_column($orderItems, 'medicine_id');
+        $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
+        $orderItems = collect($orderItems)->map(function ($item) use ($medicines) {
+            $item['medicine'] = $medicines[$item['medicine_id']];
+            return $item;
+        });
+        $invoice->items = $orderItems;
+        return $this->json($invoice, 'Lấy chi tiết hóa đơn thành công', 200);
     }
 
     #[Post(uri: "/store/invoices/create", name: "store.invoices.create")]
