@@ -7,12 +7,14 @@ namespace App\Models;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Auth\UserAuthenticatable as Authenticatable;;
+
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -29,14 +31,17 @@ class User extends Authenticatable implements JWTSubject
         'profile_image',
         'role',
         'status',
-        'email_verified_at',
         'addresses',
+        'email_verified_at',
+        'verification_code',
+        'verification_code_expires_at',
         'created_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'verification_code',
     ];
 
     protected function casts(): array
@@ -46,6 +51,7 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'role' => UserRole::class,
             'status' => UserStatus::class,
+            'verification_code_expires_at' => 'datetime',
         ];
     }
 
@@ -64,6 +70,24 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function hasVerifiedEmail()
+    {
+        return !is_null($this->email_verified_at);
+    }
+
+    public function markEmailAsVerified()
+    {
+        $this->email_verified_at = now();
+        $this->status = UserStatus::ACTIVE->value;
+        $this->unset(['verification_code', 'verification_code_expires_at']);
+        $this->save();
+    }
+
+    public function getEmailForVerification()
+    {
+        return $this->email;
     }
 
     public function orders()

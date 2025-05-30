@@ -29,7 +29,7 @@ class RegisterRequest extends FormRequest
             'password' => [
                 'required',
                 'string',
-                'min:8',
+                'min:8', // Ít nhất 8 ký tự
                 'confirmed',
                 'regex:/[a-z]/',      // Ít nhất một chữ cái thường
                 'regex:/[A-Z]/',      // Ít nhất một chữ cái hoa
