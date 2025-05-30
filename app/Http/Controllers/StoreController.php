@@ -126,11 +126,19 @@ class StoreController extends Controller
         return $this->json($medicine, "Lấy thông tin thuốc thành công");
     }
 
+    #[Get('/categories', name: 'store.categories')]
     /**
      * @OA\Get(
      *     path="/v1/store/categories",
      *     summary="Lấy tất cả danh mục",
      *     tags={"Store"},
+     *     @OA\Parameter(
+     *         name="s",
+     *         in="query",
+     *         description="Từ khóa tìm kiếm theo tên hoặc slug",
+     *         required=false,
+     *         @OA\Schema(type="string", example="giam-dau")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Thành công",
@@ -145,17 +153,26 @@ class StoreController extends Controller
      *                     type="object",
      *                     @OA\Property(property="id", type="string", example="65f43c2a8e5c5"),
      *                     @OA\Property(property="name", type="string", example="Giảm đau"),
-     *                     @OA\Property(property="description", type="string")
+     *                     @OA\Property(property="slug", type="string", example="giam-dau"),
+     *                     @OA\Property(property="description", type="string", example="Các loại thuốc giảm đau"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time"),
+     *                     @OA\Property(property="updated_at", type="string", format="date-time")
      *                 )
      *             )
      *         )
      *     )
      * )
      */
-    #[Get('/categories', name: 'store.categories')]
-    public function RootCategories()
+    public function RootCategories(Request $request)
     {
-        $categories = Category::all();
+        $search = $request->query('s');
+        $categories = Category::query()
+            ->when($search, function ($query) use ($search) {
+                $query->where('slug', 'like', '%' . $search . '%')
+                    ->orWhere('name', 'like', '%' . $search . '%');
+            })
+            ->get();
+
         return $this->json($categories, "Lấy toàn bộ danh mục thành công");
     }
 
