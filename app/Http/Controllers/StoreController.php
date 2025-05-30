@@ -26,7 +26,7 @@ class StoreController extends Controller
     /**
      * @OA\Get(
      *     path="/v1/store/medicines",
-     *     summary="Lấy danh sách thuốc có phân trang",
+     *     summary="Lấy danh sách thuốc có phân trang và bộ lọc nâng cao",
      *     tags={"Store"},
      *     @OA\Parameter(
      *         name="page",
@@ -34,6 +34,69 @@ class StoreController extends Controller
      *         description="Số trang",
      *         required=false,
      *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Số sản phẩm mỗi trang",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=20, maximum=100)
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Từ khóa tìm kiếm theo tên hoặc slug",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="category",
+     *         in="query",
+     *         description="ID danh mục",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="category_slug",
+     *         in="query",
+     *         description="Slug danh mục",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="min_price",
+     *         in="query",
+     *         description="Giá tối thiểu",
+     *         required=false,
+     *         @OA\Schema(type="number")
+     *     ),
+     *     @OA\Parameter(
+     *         name="max_price",
+     *         in="query",
+     *         description="Giá tối đa",
+     *         required=false,
+     *         @OA\Schema(type="number")
+     *     ),
+     *     @OA\Parameter(
+     *         name="min_rating",
+     *         in="query",
+     *         description="Đánh giá tối thiểu",
+     *         required=false,
+     *         @OA\Schema(type="number", minimum=0, maximum=5)
+     *     ),
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Trạng thái tồn kho",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"IN-STOCK", "OUT-OF-STOCK", "LOW-STOCK"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Sắp xếp theo",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"price_asc", "price_desc", "name_asc", "name_desc", "rating_desc", "newest", "oldest"})
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -46,6 +109,7 @@ class StoreController extends Controller
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="per_page", type="integer", example=20),
      *                 @OA\Property(
      *                     property="data",
      *                     type="array",
@@ -54,10 +118,19 @@ class StoreController extends Controller
      *                         @OA\Property(property="id", type="string", example="65f43c2a8e5c5"),
      *                         @OA\Property(property="name", type="string", example="Paracetamol"),
      *                         @OA\Property(property="price", type="number", example=15000),
-     *                         @OA\Property(property="category", type="object")
+     *                         @OA\Property(property="stock", type="integer", example=100),
+     *                         @OA\Property(property="status", type="string", example="IN-STOCK"),
+     *                         @OA\Property(property="ratings", type="object",
+     *                             @OA\Property(property="star", type="number", example=4.5)
+     *                         ),
+     *                         @OA\Property(property="category", type="object"),
+     *                         @OA\Property(property="supplier", type="object")
      *                     )
      *                 ),
-     *                 @OA\Property(property="total", type="integer", example=50)
+     *                 @OA\Property(property="total", type="integer", example=50),
+     *                 @OA\Property(property="last_page", type="integer", example=3),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="to", type="integer", example=20)
      *             )
      *         )
      *     )
@@ -66,11 +139,63 @@ class StoreController extends Controller
     #[Get('/medicines', name: 'store.medicines')]
     public function Medicines(Request $request)
     {
-        // Lấy danh sách thuốc có phân trang
-        $medicines = Medicine::with(['category', 'supplier'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
+        $perPage = min(max((int)$request->query('per_page', 20), 1), 100);
+        $query = Medicine::with(['category', 'supplier']);
+        if ($search = $request->query('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+        if ($categoryId = $request->query('category')) $query->where('category_id', $categoryId);
+        if ($categorySlug = $request->query('category_slug')) {
+            $query->whereHas('category', function ($q) use ($categorySlug) {
+                $q->where('slug', $categorySlug);
+            });
+        }
+        if ($minPrice = $request->query('min_price')) $query->where('price', '>=', (float)$minPrice);
+        if ($maxPrice = $request->query('max_price')) $query->where('price', '<=', (float)$maxPrice);
+        if ($minRating = $request->query('min_rating')) $query->where('ratings.star', '>=', (float)$minRating);
+        if ($status = $request->query('status')) {
+            switch (strtoupper($status)) {
+                case 'IN-STOCK':
+                    $query->where('stock', '>', 10);
+                    break;
+                case 'LOW-STOCK':
+                    $query->whereBetween('stock', [1, 10]);
+                    break;
+                case 'OUT-OF-STOCK':
+                    $query->where('stock', '<=', 0);
+                    break;
+            }
+        }
+        $sortBy = $request->query('sort_by', 'newest');
+        switch ($sortBy) {
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'rating_desc':
+                $query->orderBy('ratings.star', 'desc');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'newest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+        $medicines = $query->paginate($perPage);
         return $this->json($medicines, "Lấy danh sách thuốc thành công");
     }
 

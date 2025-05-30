@@ -56,9 +56,29 @@ class MedicineController extends Controller
      * )
      */
     #[Get(uri: "/", name: "admin.medicines.index")]
-    public function listMedicine()
+    public function listMedicine(Request $request)
     {
-        $medicines = Medicine::with(['category', 'supplier'])->get();
+        $query = Medicine::with(['category', 'supplier']);
+        if ($request->has('s') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                    ->orWhere('description', 'like', "%{$searchTerm}%")
+                    ->orWhere('details.ingredients', 'like', "%{$searchTerm}%");
+            });
+        }
+        if ($request->has('category_id') && !empty($request->category_id)) $query->where('category_id', $request->category_id);
+        if ($request->has('supplier_id') && !empty($request->supplier_id)) $query->where('supplier_id', $request->supplier_id);
+        if ($request->has('stock_status') && !empty($request->stock_status)) $query->where('variants.stock_status', $request->stock_status);
+        if ($request->has('is_featured')) $query->where('variants.is_featured', $request->boolean('is_featured'));
+        if ($request->has('is_active')) $query->where('variants.is_active', $request->boolean('is_active'));
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        if (in_array($sortBy, ['name', 'created_at', 'variants.price', 'variants.original_price'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+        $perPage = $request->get('per_page', 20);
+        $medicines = $query->paginate($perPage);
         if ($medicines->isEmpty()) return $this->fail(null, 'Không tìm thấy thuốc', 404);
         return $this->json($medicines, 'Danh sách thuốc', 200);
     }
