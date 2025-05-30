@@ -215,7 +215,8 @@ class UserController extends Controller
         'alt' => $request->input('username') . "-alt",
       ],
       'role' => $request->input('role'),
-      'status' => $request->input('status')
+      'status' => $request->input('status'),
+      'email_verified_at' => now(),
     ]);
     return $this->json($newUser, 'User created successfully', 201);
   }

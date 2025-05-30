@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Notifications\EmailVerificationNotification;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
@@ -152,6 +154,7 @@ class AuthController extends Controller
   public function register(\App\Http\Requests\RegisterRequest $request)
   {
     $validated = $request->validated();
+    $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $user = User::create([
       'firstname' => $validated['firstname'],
       'lastname' => $validated['lastname'],
@@ -166,6 +169,8 @@ class AuthController extends Controller
       ],
       'status' => UserStatus::PENDING->value,
       'role' => UserRole::CUSTOMER->value,
+      'verification_code' => $verificationCode,
+      'verification_code_expires_at' => now()->addMinutes(15),
     ]);
     if (!$user) return $this->fail([], "Đăng ký không thành công", 500);
     $token = JWTAuth::fromUser($user);
@@ -173,7 +178,177 @@ class AuthController extends Controller
     return $this->json([
       'access_token' => $token,
       'user' => $user,
-    ], "Đăng ký thành công", 201);
+      'required_verification' => true,
+    ], "Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.", 201);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/v1/auth/verify-email",
+   *     operationId="verifyEmail",
+   *     tags={"Authentication"},
+   *     summary="Xác minh email bằng mã xác nhận",
+   *     description="Xác minh email của người dùng bằng mã 6 chữ số được gửi qua email",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\RequestBody(
+   *         required=true,
+   *         @OA\JsonContent(
+   *             required={"verification_code"},
+   *             @OA\Property(property="verification_code", type="string", example="123456", description="Mã xác minh 6 chữ số")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Xác minh email thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=true),
+   *             @OA\Property(property="message", type="string", example="Xác minh email thành công"),
+   *             @OA\Property(property="data", type="object",
+   *                 @OA\Property(property="_id", type="string", example="60a1f2e6a1b9a2c3d4e5f6g7"),
+   *                 @OA\Property(property="firstname", type="string", example="Nguyen"),
+   *                 @OA\Property(property="lastname", type="string", example="Van A"),
+   *                 @OA\Property(property="username", type="string", example="nguyenvana"),
+   *                 @OA\Property(property="email", type="string", example="nguyenvana@example.com"),
+   *                 @OA\Property(property="phone", type="string", example="0987654321"),
+   *                 @OA\Property(property="profile_image", type="string", example="3.jpg"),
+   *                 @OA\Property(property="role", type="string", example="customer"),
+   *                 @OA\Property(property="status", type="string", example="active"),
+   *                 @OA\Property(property="email_verified_at", type="string", format="date-time")
+   *             )
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=400,
+   *         description="Mã xác minh không hợp lệ hoặc đã hết hạn",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Mã xác minh không chính xác"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Người dùng không tồn tại",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Người dùng không tồn tại"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=422,
+   *         description="Lỗi xác thực dữ liệu đầu vào",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Trường verification code là bắt buộc."),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=401,
+   *         description="Chưa xác thực",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Unauthenticated"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     )
+   * )
+   */
+  #[Post('/verify-email', 'auth.verifyEmail')]
+  public function verifyEmail(Request $request)
+  {
+    $validator = Validator::make($request->all(), [
+      'verification_code' => 'required|string|size:6',
+    ]);
+    if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
+    /** @var User */
+    $user = Auth::user();
+    if (!$user) return $this->fail(null, "Người dùng không tồn tại", 404);
+    if ($user->hasVerifiedEmail()) return $this->fail(null, "Email đã được xác minh trước đó", 400);
+    if (!$user->verification_code || $user->verification_code !== $request->verification_code) {
+      now()->isAfter($user->verification_code_expires_at) ?
+        $this->fail(null, "Mã xác minh đã hết hạn", 400) :
+        $this->fail(null, "Mã xác minh không chính xác", 400);
+      return $this->fail(null, "Mã xác minh không chính xác", 400);
+    }
+    $user->markEmailAsVerified();
+    Log::info('User email verified', ['user_id' => $user->id, 'email' => $user->email]);
+    return $this->json($user, "Xác minh email thành công", 200);
+  }
+
+  #[Post("/resend-verification-email", "auth.resendVerificationEmail")]
+  /**
+   * @OA\Post(
+   *     path="/v1/auth/resend-verification-email",
+   *     operationId="resendVerificationEmail",
+   *     tags={"Authentication"},
+   *     summary="Gửi lại email xác minh",
+   *     description="Gửi lại mã xác minh email cho người dùng chưa xác minh tài khoản",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Response(
+   *         response=200,
+   *         description="Gửi lại email xác minh thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=true),
+   *             @OA\Property(property="message", type="string", example="Đã gửi lại email xác minh. Vui lòng kiểm tra hộp thư đến của bạn."),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=400,
+   *         description="Email đã được xác minh",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Email đã được xác minh trước đó"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Người dùng không tồn tại",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Người dùng không tồn tại"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=429,
+   *         description="Quá nhiều yêu cầu",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Vui lòng chờ 60 giây trước khi gửi lại"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=401,
+   *         description="Chưa xác thực",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Unauthenticated"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     )
+   * )
+   */
+  public function resendVerificationEmail()
+  {
+    /** @var User */
+    $user = Auth::user();
+    if (!$user) return $this->fail(null, "Người dùng không tồn tại", 404);
+    if ($user->hasVerifiedEmail()) return $this->fail(null, "Email đã được xác minh trước đó", 400);
+    $cacheKey = "resend_verification_{$user->id}";
+    if (Cache::has($cacheKey)) return $this->fail(null, "Vui lòng chờ 60 giây trước khi gửi lại", 429);
+    $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $user->verification_code = $verificationCode;
+    $user->verification_code_expires_at = now()->addMinutes(15);
+    $user->save();
+    $user->notify(new EmailVerificationNotification($verificationCode));
+    Cache::put($cacheKey, true, 60); // Cache for 60 seconds
+    Log::info('Resent verification email', ['user_id' => $user->id, 'email' => $user->email]);
+    return $this->json(null, "Đã gửi lại email xác minh. Vui lòng kiểm tra hộp thư đến của bạn.", 200);
   }
 
   /**
@@ -254,18 +429,21 @@ class AuthController extends Controller
       'password' => $request->password,
     ];
     if (!Auth::attempt($credentials)) return $this->fail(null, "Tài khoản hoặc mật khẩu không chính xác", 401);
+    /** @var User */
     $user = Auth::user();
-    // Check user status with match expression for cleaner code
-    if ($user->status === UserStatus::PENDING->value || $user->status === UserStatus::SUSPENDED->value) {
+    if (!$user->hasVerifiedEmail()) {
+      return $this->fail([
+        'requires_verification' => true,
+      ], "Email chưa được xác minh. Vui lòng kiểm tra email của bạn để xác minh.", 403);
+    } 
+    if ($user->status === UserStatus::SUSPENDED->value) {
       $message = match ($user->status) {
-        UserStatus::PENDING->value => "Tài khoản chưa được kích hoạt",
         UserStatus::SUSPENDED->value => "Tài khoản đã bị khóa",
         default => "Tài khoản không trong trạng thái hoạt động",
       };
       return $this->fail(null, $message, 403);
     }
     $user->last_login_at = now();
-    /** @var User $user */
     $user->save();
     $token = JWTAuth::fromUser($user);
     return $this->json([
