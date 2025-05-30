@@ -173,6 +173,7 @@ class AuthController extends Controller
       'verification_code_expires_at' => now()->addMinutes(15),
     ]);
     if (!$user) return $this->fail([], "Đăng ký không thành công", 500);
+    $user->notify(new EmailVerificationNotification($verificationCode));
     $token = JWTAuth::fromUser($user);
     Log::info('New user registered', ['user_id' => $user->id, 'email' => $user->email]);
     return $this->json([
