@@ -388,19 +388,50 @@ class MedicineController extends Controller
             'usageguide.precautions' => 'nullable|array',
             'usageguide.precautions.*' => 'nullable|string|min:2|max:255',
         ]);
-        if ($validator->fails()) return $this->fail(null, 'Dữ liệu không hợp lệ', 422);
-        $updateData = array_filter($request->only([
-            'category_id',
-            'supplier_id',
-            'name',
-            'description',
-            'variants',
-            'details',
-            'usageguide',
-        ]), function ($value) {
-            return !is_null($value);
-        });
+        if ($request->has('category_id')) $updateData['category_id'] = $request->category_id;
+        if ($request->has('supplier_id')) $updateData['supplier_id'] = $request->supplier_id;
+        if ($request->has('name')) {
+            $updateData['name'] = $request->name;
+            $updateData['slug'] = Str::slug($request->name);
+        }
+        if ($request->has('description')) $updateData['description'] = $request->description;
+        if ($request->has('variants')) {
+            $currentVariants = $medicine->variants ?? [];
+            $newVariants = $request->variants;
+            $mergedVariants = array_merge($currentVariants, $newVariants);
+            if (isset($newVariants['original_price']) || isset($newVariants['discount_percent'])) {
+                $originalPrice = $mergedVariants['original_price'] ?? $currentVariants['original_price'] ?? 0;
+                $discountPercent = $mergedVariants['discount_percent'] ?? $currentVariants['discount_percent'] ?? 0;
+                $mergedVariants['price'] = $originalPrice - ($originalPrice * $discountPercent / 100);
+            }
+            $updateData['variants'] = $mergedVariants;
+        }
+        if ($request->has('details')) {
+            $currentDetails = $medicine->details ?? [];
+            $newDetails = $request->details;
+            $mergedDetails = $currentDetails;
+            if (isset($newDetails['ingredients'])) $mergedDetails['ingredients'] = $newDetails['ingredients'];
+            if (isset($newDetails['usage'])) $mergedDetails['usage'] = $newDetails['usage'];
+            if (isset($newDetails['paramaters'])) {
+                $currentParams = $currentDetails['paramaters'] ?? [];
+                $mergedDetails['paramaters'] = array_merge($currentParams, $newDetails['paramaters']);
+            }
+            $updateData['details'] = $mergedDetails;
+        }
+        if ($request->has('usageguide')) {
+            $currentUsageGuide = $medicine->usageguide ?? [];
+            $newUsageGuide = $request->usageguide;
+            $mergedUsageGuide = $currentUsageGuide;
+            if (isset($newUsageGuide['dosage'])) {
+                $currentDosage = $currentUsageGuide['dosage'] ?? [];
+                $mergedUsageGuide['dosage'] = array_merge($currentDosage, $newUsageGuide['dosage']);
+            }
+            if (isset($newUsageGuide['directions'])) $mergedUsageGuide['directions'] = $newUsageGuide['directions'];
+            if (isset($newUsageGuide['precautions'])) $mergedUsageGuide['precautions'] = $newUsageGuide['precautions'];
+            $updateData['usageguide'] = $mergedUsageGuide;
+        }
         $medicine->update($updateData);
+        $medicine->refresh();
         return $this->json($medicine, 'Đã cập nhật thuốc thành công', 200);
     }
 

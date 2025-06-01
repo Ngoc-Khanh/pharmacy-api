@@ -257,7 +257,7 @@ class InvoiceController extends Controller
     #[Get(uri: "/admin/invoices/list", name: "admin.invoices.list", middleware: "role:admin")]
     /**
      * @OA\Get(
-     *     path="/v1/store/admin/invoices/list",
+     *     path="/v1/admin/invoices/list",
      *     operationId="adminInvoicesList",
      *     tags={"Invoices"},
      *     summary="Lấy danh sách tất cả hóa đơn",
@@ -305,7 +305,7 @@ class InvoiceController extends Controller
     #[Post(uri: "/admin/invoices/create-with-no-order", name: "admin.invoices.create-with-no-order", middleware: "role:admin")]
     /**
      * @OA\Post(
-     *     path="/v1/store/admin/invoices/create-with-no-order",
+     *     path="/v1/admin/invoices/create-with-no-order",
      *     operationId="adminCreateInvoiceWithNoOrder",
      *     tags={"Invoices"},
      *     summary="Tạo hóa đơn không kèm đơn hàng",
@@ -382,10 +382,33 @@ class InvoiceController extends Controller
         return $this->json($invoice, 'Thêm hóa đơn thành công', 200);
     }
 
+    #[Get(uri: "/admin/invoices/{id}/details", name: "admin.invoices.details", middleware: "role:admin")]
+    public function getAdminInvoiceDetails($id)
+    {
+        $invoice = Invoice::where('_id', $id)->first();
+        if (!$invoice) return $this->fail(null, 'Hóa đơn không tồn tại', 400);
+        $order = Order::where('_id', $invoice->order_id)->first();
+        if ($order) {
+            $invoice->order = [
+                'shipping_fee' => $order->shipping_fee,
+                'discount' => $order->discount,
+                'shipping_address' => $order->shipping_address,
+            ];
+            $invoice->items = collect($order->items)->map(function ($item) {
+                $medicine = Medicine::find($item['medicine_id']);
+                if ($medicine) {
+                    $item['medicine'] = $medicine;
+                }
+                return $item;
+            });
+        }
+        return $this->json($invoice, 'Lấy chi tiết hóa đơn thành công', 200);
+    }
+
     #[Delete(uri: "/admin/invoices/{id}/delete", name: "admin.invoices.delete", middleware: "role:admin")]
     /**
      * @OA\Delete(
-     *     path="/v1/store/admin/invoices/{id}/delete",
+     *     path="/v1/admin/invoices/{id}/delete",
      *     operationId="adminDeleteInvoice",
      *     tags={"Invoices"},
      *     summary="Xóa hóa đơn",
