@@ -160,7 +160,7 @@ class SupplierController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:3|max:255',
             'address' => 'required|string|min:3|max:255',
-            'contact_phone' => 'required|string|min:10|max:15|unique:suppliers,contact_phone',
+            'contact_phone' => ['required', 'string', 'min:10', 'max:15', 'regex:/^[\+]?[0-9]+$/', 'unique:suppliers,contact_phone'],
             'contact_email' => 'required|email|max:255|unique:suppliers,contact_email',
         ]);
         if ($validator->fails()) return $this->fail(null, $validator->errors(), 422);
@@ -270,7 +270,7 @@ class SupplierController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:3|max:255',
             'address' => 'required|string|min:3|max:255',
-            'contact_phone' => 'required|string|min:10|max:15|unique:suppliers,contact_phone,' . $id,
+            'contact_phone' => ['required', 'string', 'min:10', 'max:15', 'regex:/^[\+]?[0-9]+$/', 'unique:suppliers,contact_phone,' . $id],
             'contact_email' => 'required|email|max:255|unique:suppliers,contact_email,' . $id,
         ]);
         if ($validator->fails()) return $this->fail(null, $validator->errors(), 422);
