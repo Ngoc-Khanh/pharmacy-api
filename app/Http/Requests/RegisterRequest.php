@@ -38,7 +38,7 @@ class RegisterRequest extends FormRequest
                 'regex:/[0-9]/',      // Ít nhất một số
                 'regex:/[@$!%*#?&]/', // Ít nhất một ký tự đặc biệt
             ],
-            'phone' => 'required|string|max:15|unique:users',
+            'phone' => 'required|string|max:15|unique:users|regex:/^[+]?[0-9]+$/',
         ];
     }
 
