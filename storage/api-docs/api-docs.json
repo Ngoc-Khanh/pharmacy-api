@@ -2113,6 +2113,370 @@
                 ]
             }
         },
+        "/v1/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Yêu cầu đặt lại mật khẩu",
+                "description": "Gửi email chứa liên kết đặt lại mật khẩu cho người dùng",
+                "operationId": "forgotPassword",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "description": "Email của tài khoản cần đặt lại mật khẩu",
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Gửi email đặt lại mật khẩu thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã gửi email hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn."
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Email không tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email không tồn tại trong hệ thống"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Lỗi xác thực dữ liệu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Trường email là bắt buộc."
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Quá nhiều yêu cầu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vui lòng chờ 60 giây trước khi gửi lại yêu cầu đặt lại mật khẩu"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Đặt lại mật khẩu",
+                "description": "Đặt lại mật khẩu mới cho tài khoản bằng token từ email",
+                "operationId": "resetPassword",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "reset_token",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "reset_token": {
+                                        "description": "Token đặt lại mật khẩu từ email",
+                                        "type": "string",
+                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                    },
+                                    "password": {
+                                        "description": "Mật khẩu mới",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    },
+                                    "password_confirmation": {
+                                        "description": "Xác nhận mật khẩu mới",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Đặt lại mật khẩu thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mật khẩu đã được đặt lại thành công"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "access_token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "example": "60a1f2e6a1b9a2c3d4e5f6g7"
+                                                        },
+                                                        "firstname": {
+                                                            "type": "string",
+                                                            "example": "John"
+                                                        },
+                                                        "lastname": {
+                                                            "type": "string",
+                                                            "example": "Doe"
+                                                        },
+                                                        "username": {
+                                                            "type": "string",
+                                                            "example": "johndoe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john@example.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "0123456789"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Token không hợp lệ hoặc đã hết hạn",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Lỗi xác thực dữ liệu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Trường password là bắt buộc."
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/auth/verify-reset-token/{token}": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Xác minh token đặt lại mật khẩu",
+                "description": "Kiểm tra tính hợp lệ của token đặt lại mật khẩu từ email",
+                "operationId": "verifyResetToken",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Token đặt lại mật khẩu",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mã đặt lại mật khẩu hợp lệ"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "email": {
+                                                    "description": "Email của tài khoản",
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                },
+                                                "reset_token": {
+                                                    "description": "Token đặt lại mật khẩu",
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Token không hợp lệ hoặc đã hết hạn",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/auth/credentials": {
             "post": {
                 "tags": [
@@ -3385,7 +3749,7 @@
                 ]
             }
         },
-        "/v1/store/admin/invoices/list": {
+        "/v1/admin/invoices/list": {
             "get": {
                 "tags": [
                     "Invoices"
@@ -3495,7 +3859,7 @@
                 ]
             }
         },
-        "/v1/store/admin/invoices/create-with-no-order": {
+        "/v1/admin/invoices/create-with-no-order": {
             "post": {
                 "tags": [
                     "Invoices"
@@ -3673,7 +4037,7 @@
                 ]
             }
         },
-        "/v1/store/admin/invoices/{id}/delete": {
+        "/v1/admin/invoices/{id}/delete": {
             "delete": {
                 "tags": [
                     "Invoices"
@@ -6223,7 +6587,7 @@
                 "tags": [
                     "Store"
                 ],
-                "summary": "Lấy danh sách thuốc có phân trang",
+                "summary": "Lấy danh sách thuốc có phân trang và bộ lọc nâng cao",
                 "operationId": "81b256f0194ea99f51f89c58b204aaf5",
                 "parameters": [
                     {
@@ -6234,6 +6598,105 @@
                         "schema": {
                             "type": "integer",
                             "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Số sản phẩm mỗi trang",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Từ khóa tìm kiếm theo tên hoặc slug",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "ID danh mục",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category_slug",
+                        "in": "query",
+                        "description": "Slug danh mục",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "min_price",
+                        "in": "query",
+                        "description": "Giá tối thiểu",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "max_price",
+                        "in": "query",
+                        "description": "Giá tối đa",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "min_rating",
+                        "in": "query",
+                        "description": "Đánh giá tối thiểu",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "maximum": 5,
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Trạng thái tồn kho",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "IN-STOCK",
+                                "OUT-OF-STOCK",
+                                "LOW-STOCK"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sắp xếp theo",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "price_asc",
+                                "price_desc",
+                                "name_asc",
+                                "name_desc",
+                                "rating_desc",
+                                "newest",
+                                "oldest"
+                            ]
                         }
                     }
                 ],
@@ -6258,6 +6721,10 @@
                                                     "type": "integer",
                                                     "example": 1
                                                 },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
                                                 "data": {
                                                     "type": "array",
                                                     "items": {
@@ -6274,7 +6741,27 @@
                                                                 "type": "number",
                                                                 "example": 15000
                                                             },
+                                                            "stock": {
+                                                                "type": "integer",
+                                                                "example": 100
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "example": "IN-STOCK"
+                                                            },
+                                                            "ratings": {
+                                                                "properties": {
+                                                                    "star": {
+                                                                        "type": "number",
+                                                                        "example": 4.5
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
                                                             "category": {
+                                                                "type": "object"
+                                                            },
+                                                            "supplier": {
                                                                 "type": "object"
                                                             }
                                                         },
@@ -6284,6 +6771,18 @@
                                                 "total": {
                                                     "type": "integer",
                                                     "example": 50
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "from": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "to": {
+                                                    "type": "integer",
+                                                    "example": 20
                                                 }
                                             },
                                             "type": "object"
@@ -6393,6 +6892,18 @@
                 ],
                 "summary": "Lấy tất cả danh mục",
                 "operationId": "0a2cfeeddf060c79e7755fa046024c40",
+                "parameters": [
+                    {
+                        "name": "s",
+                        "in": "query",
+                        "description": "Từ khóa tìm kiếm theo tên hoặc slug",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "giam-dau"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Thành công",
@@ -6420,8 +6931,21 @@
                                                         "type": "string",
                                                         "example": "Giảm đau"
                                                     },
+                                                    "slug": {
+                                                        "type": "string",
+                                                        "example": "giam-dau"
+                                                    },
                                                     "description": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "example": "Các loại thuốc giảm đau"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
                                                     }
                                                 },
                                                 "type": "object"
