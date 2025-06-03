@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ForgotPasswordRequest;
 use App\Models\User;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Notifications\EmailVerificationNotification;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -354,6 +358,207 @@ class AuthController extends Controller
 
   /**
    * @OA\Post(
+   *     path="/v1/auth/forgot-password",
+   *     operationId="forgotPassword",
+   *     tags={"Authentication"},
+   *     summary="Yêu cầu đặt lại mật khẩu",
+   *     description="Gửi email chứa liên kết đặt lại mật khẩu cho người dùng",
+   *     @OA\RequestBody(
+   *         required=true,
+   *         @OA\JsonContent(
+   *             required={"email"},
+   *             @OA\Property(property="email", type="string", format="email", example="user@example.com", description="Email của tài khoản cần đặt lại mật khẩu")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Gửi email đặt lại mật khẩu thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=true),
+   *             @OA\Property(property="message", type="string", example="Đã gửi email hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn."),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Email không tồn tại",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Email không tồn tại trong hệ thống"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=422,
+   *         description="Lỗi xác thực dữ liệu",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Trường email là bắt buộc."),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=429,
+   *         description="Quá nhiều yêu cầu",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Vui lòng chờ 60 giây trước khi gửi lại yêu cầu đặt lại mật khẩu"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     )
+   * )
+   */
+  #[Post("/forgot-password", "auth.forgotPassword")]
+  public function forgotPassword(ForgotPasswordRequest $request)
+  {
+    $email = $request->validated()['email'];
+    $cacheKey = "forgot_password_{$email}";
+    if (Cache::has($cacheKey)) return $this->fail(null, "Vui lòng chờ 60 giây trước khi gửi lại yêu cầu đặt lại mật khẩu", 429);
+    $user = User::where('email', $email)->first();
+    $resetToken = Str::uuid()->toString();
+    $user->password_reset_code = $resetToken;
+    $user->password_reset_expires_at = now()->addMinutes(15);
+    $user->save();
+    $user->notify(new ResetPasswordNotification($resetToken, $user->firstname . ' ' . $user->lastname));
+    Cache::put($cacheKey, true, 60);
+    Log::info('Password reset requested', [
+      'user_id' => $user->id,
+      'email' => $user->email,
+      'reset_token' => $resetToken
+    ]);
+    return $this->json(null, "Đã gửi email hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn.", 200);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/v1/auth/reset-password",
+   *     operationId="resetPassword",
+   *     tags={"Authentication"},
+   *     summary="Đặt lại mật khẩu",
+   *     description="Đặt lại mật khẩu mới cho tài khoản bằng token từ email",
+   *     @OA\RequestBody(
+   *         required=true,
+   *         @OA\JsonContent(
+   *             required={"reset_token", "password", "password_confirmation"},
+   *             @OA\Property(property="reset_token", type="string", example="550e8400-e29b-41d4-a716-446655440000", description="Token đặt lại mật khẩu từ email"),
+   *             @OA\Property(property="password", type="string", format="password", example="newpassword123", description="Mật khẩu mới"),
+   *             @OA\Property(property="password_confirmation", type="string", format="password", example="newpassword123", description="Xác nhận mật khẩu mới")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Đặt lại mật khẩu thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=true),
+   *             @OA\Property(property="message", type="string", example="Mật khẩu đã được đặt lại thành công"),
+   *             @OA\Property(property="data", type="object",
+   *                 @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+   *                 @OA\Property(property="user", type="object",
+   *                     @OA\Property(property="id", type="string", example="60a1f2e6a1b9a2c3d4e5f6g7"),
+   *                     @OA\Property(property="firstname", type="string", example="John"),
+   *                     @OA\Property(property="lastname", type="string", example="Doe"),
+   *                     @OA\Property(property="username", type="string", example="johndoe"),
+   *                     @OA\Property(property="email", type="string", example="john@example.com"),
+   *                     @OA\Property(property="phone", type="string", example="0123456789")
+   *                 )
+   *             )
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=400,
+   *         description="Token không hợp lệ hoặc đã hết hạn",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=422,
+   *         description="Lỗi xác thực dữ liệu",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Trường password là bắt buộc."),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     )
+   * )
+   */
+  #[Post('/reset-password', 'auth.resetPassword')]
+  public function resetPassword(ResetPasswordRequest $request)
+  {
+    $validated = $request->validated();
+    $user = User::where('password_reset_code', $validated['reset_token'])
+      ->where('password_reset_expires_at', '>', now())
+      ->first();
+    if (!$user) return $this->fail(null, "Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn", 400);
+    $user->password = bcrypt($validated['password']);
+    unset($user->password_reset_code);
+    unset($user->password_reset_expires_at);
+    $user->save();
+    $token = JWTAuth::fromUser($user);
+    Log::info('Password reset successfully', [
+      'user_id' => $user->id,
+      'email' => $user->email
+    ]);
+    return $this->json([
+      'access_token' => $token,
+      'user' => $user
+    ], "Mật khẩu đã được đặt lại thành công", 200);
+  }
+
+  /**
+   * @OA\Get(
+   *     path="/v1/auth/verify-reset-token/{token}",
+   *     operationId="verifyResetToken",
+   *     tags={"Authentication"},
+   *     summary="Xác minh token đặt lại mật khẩu",
+   *     description="Kiểm tra tính hợp lệ của token đặt lại mật khẩu từ email",
+   *     @OA\Parameter(
+   *         name="token",
+   *         in="path",
+   *         required=true,
+   *         description="Token đặt lại mật khẩu",
+   *         @OA\Schema(type="string", example="550e8400-e29b-41d4-a716-446655440000")
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Token hợp lệ",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=true),
+   *             @OA\Property(property="message", type="string", example="Mã đặt lại mật khẩu hợp lệ"),
+   *             @OA\Property(property="data", type="object",
+   *                 @OA\Property(property="email", type="string", example="user@example.com", description="Email của tài khoản"),
+   *                 @OA\Property(property="reset_token", type="string", example="550e8400-e29b-41d4-a716-446655440000", description="Token đặt lại mật khẩu")
+   *             )
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=400,
+   *         description="Token không hợp lệ hoặc đã hết hạn",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="success", type="boolean", example=false),
+   *             @OA\Property(property="message", type="string", example="Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn"),
+   *             @OA\Property(property="data", type="null", example=null)
+   *         )
+   *     )
+   * )
+   */
+  #[Get('/verify-reset-token/{token}', 'auth.verifyResetToken')]
+  public function verifyEmailResetToken(string $token)
+  {
+    $user = User::where('password_reset_code', $token)
+      ->where('password_reset_expires_at', '>', now())
+      ->first();
+    if (!$user) return $this->fail(null, "Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn", 400);
+    return $this->json([
+      'email' => $user->email,
+      'reset_token' => $token,
+    ], "Mã đặt lại mật khẩu hợp lệ", 200);
+  }
+
+  /**
+   * @OA\Post(
    *     path="/v1/auth/credentials",
    *     operationId="login",
    *     tags={"Authentication"},
@@ -436,7 +641,7 @@ class AuthController extends Controller
       return $this->fail([
         'requires_verification' => true,
       ], "Email chưa được xác minh. Vui lòng kiểm tra email của bạn để xác minh.", 403);
-    } 
+    }
     if ($user->status === UserStatus::SUSPENDED->value) {
       $message = match ($user->status) {
         UserStatus::SUSPENDED->value => "Tài khoản đã bị khóa",

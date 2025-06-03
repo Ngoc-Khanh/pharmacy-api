@@ -35,13 +35,15 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verified_at',
         'verification_code',
         'verification_code_expires_at',
+        'password_reset_token',
+        'password_reset_token_expires_at',
         'created_at',
     ];
 
     protected $hidden = [
         'password',
-        'remember_token',
         'verification_code',
+        'pasword_reset_token',
     ];
 
     protected function casts(): array
@@ -52,6 +54,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'role' => UserRole::class,
             'status' => UserStatus::class,
             'verification_code_expires_at' => 'datetime',
+            'password_reset_token_expires_at', 'datetime',
         ];
     }
 
