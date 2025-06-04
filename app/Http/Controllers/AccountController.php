@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangePasswordRequest;
 use App\Models\Cart;
 use App\Models\Medicine;
 use App\Models\User;
@@ -574,7 +575,7 @@ class AccountController extends Controller
      *     operationId="changePassword",
      *     tags={"Account"},
      *     summary="Cập nhật mật khẩu tài khoản",
-     *     description="Cập nhật mật khẩu của người dùng đã đăng nhập",
+     *     description="Cập nhật mật khẩu của người dùng đã đăng nhập",0
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -620,27 +621,12 @@ class AccountController extends Controller
      *     )
      * )
      */
-    public function changePassword(Request $request)
+    public function changePassword(ChangePasswordRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'current_password' => 'required|string|min:8',
-            'new_password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
-                'regex:/[a-z]/',      // Ít nhất một chữ cái thường
-                'regex:/[A-Z]/',      // Ít nhất một chữ cái hoa
-                'regex:/[0-9]/',      // Ít nhất một số
-                'regex:/[@$!%*#?&]/', // Ít nhất một ký tự đặc biệt
-            ],
-        ]);
-        if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
-        $user = $request->user();
-        if (!Hash::check($request->current_password, $user->password)) {
-            return $this->fail(null, 'Mật khẩu hiện tại không chính xác', 401);
-        }
-        $user->password = Hash::make($request->new_password);
+        $validated = $request->validated();
+        $user = $request->user();    
+        if (!Hash::check($validated['current_password'], $user->password)) return $this->fail(null, 'Mật khẩu hiện tại không chính xác', 401);
+        $user->password = Hash::make($validated['new_password']);
         $user->save();
         return $this->json(null, 'Cập nhật mật khẩu thành công', 200);
     }
