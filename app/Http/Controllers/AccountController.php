@@ -575,7 +575,7 @@ class AccountController extends Controller
      *     operationId="changePassword",
      *     tags={"Account"},
      *     summary="Cập nhật mật khẩu tài khoản",
-     *     description="Cập nhật mật khẩu của người dùng đã đăng nhập",0
+     *     description="Cập nhật mật khẩu của người dùng đã đăng nhập",
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -624,7 +624,7 @@ class AccountController extends Controller
     public function changePassword(ChangePasswordRequest $request)
     {
         $validated = $request->validated();
-        $user = $request->user();    
+        $user = $request->user();
         if (!Hash::check($validated['current_password'], $user->password)) return $this->fail(null, 'Mật khẩu hiện tại không chính xác', 401);
         $user->password = Hash::make($validated['new_password']);
         $user->save();
