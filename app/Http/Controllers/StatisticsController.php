@@ -5,25 +5,33 @@ namespace App\Http\Controllers;
 use App\Enums\{UserRole, MedicineStatus, InvoiceStatus, OrderStatus};
 use App\Models\{Order, Invoice, User, Medicine};
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
 
 #[Prefix('v1/admin/statistics')]
-#[Middleware(['jwt.auth', ])]
+#[Middleware(['jwt.auth',])]
+/**
+ * @OA\Tag(
+ *     name="Dashboard",
+ *     description="Các API endpoint để quản lý thống kê tổng quan dashboard cho quản trị viên",
+ * )
+ */
 class StatisticsController extends Controller
 {
+    #[Get(uri: 'overview', name: 'admin.statistics.overview')]
     /**
      * @OA\Get(
-     *     path="/api/v1/admin/statistics/dashboard",
-     *     summary="Get dashboard statistics",
-     *     description="Retrieve comprehensive dashboard statistics including orders, revenue, users, and medicines data",
+     *     path="/v1/admin/statistics/dashboard",
+     *     summary="Lấy thống kê tổng quan dashboard",
+     *     description="Truy xuất thống kê tổng quan dashboard bao gồm dữ liệu đơn hàng, doanh thu, người dùng và thuốc",
      *     operationId="getDashboardStats",
-     *     tags={"Admin Statistics"},
+     *     tags={"Dashboard"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
-     *         description="Dashboard statistics retrieved successfully",
+     *         description="Lấy thống kê dashboard thành công",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Lấy thống kê dashboard thành công"),
@@ -33,68 +41,73 @@ class StatisticsController extends Controller
      *                 @OA\Property(
      *                     property="overview",
      *                     type="object",
+     *                     description="Thống kê tổng quan",
      *                     @OA\Property(
      *                         property="total_orders",
      *                         type="object",
-     *                         @OA\Property(property="total", type="integer", example=1250),
-     *                         @OA\Property(property="pending", type="integer", example=45),
-     *                         @OA\Property(property="completed", type="integer", example=1150),
-     *                         @OA\Property(property="cancelled", type="integer", example=55)
+     *                         description="Thống kê đơn hàng",
+     *                         @OA\Property(property="total", type="integer", example=1250, description="Tổng số đơn hàng"),
+     *                         @OA\Property(property="pending", type="integer", example=45, description="Đơn hàng chờ xử lý"),
+     *                         @OA\Property(property="completed", type="integer", example=1150, description="Đơn hàng hoàn thành"),
+     *                         @OA\Property(property="cancelled", type="integer", example=55, description="Đơn hàng đã hủy")
      *                     ),
-     *                     @OA\Property(property="total_revenue", type="number", format="float", example=125000.50),
+     *                     @OA\Property(property="total_revenue", type="number", format="float", example=125000.50, description="Tổng doanh thu"),
      *                     @OA\Property(
      *                         property="total_users",
      *                         type="object",
-     *                         @OA\Property(property="total", type="integer", example=500),
-     *                         @OA\Property(property="pharmacists", type="integer", example=25),
-     *                         @OA\Property(property="customers", type="integer", example=500)
+     *                         description="Thống kê người dùng",
+     *                         @OA\Property(property="total", type="integer", example=500, description="Tổng số khách hàng"),
+     *                         @OA\Property(property="pharmacists", type="integer", example=25, description="Số dược sĩ"),
+     *                         @OA\Property(property="customers", type="integer", example=500, description="Số khách hàng")
      *                     ),
      *                     @OA\Property(
      *                         property="total_medicines",
      *                         type="object",
-     *                         @OA\Property(property="total", type="integer", example=350),
-     *                         @OA\Property(property="in_stock", type="integer", example=320),
-     *                         @OA\Property(property="out_of_stock", type="integer", example=30)
+     *                         description="Thống kê thuốc",
+     *                         @OA\Property(property="total", type="integer", example=350, description="Tổng số loại thuốc"),
+     *                         @OA\Property(property="in_stock", type="integer", example=320, description="Thuốc còn hàng"),
+     *                         @OA\Property(property="out_of_stock", type="integer", example=30, description="Thuốc hết hàng")
      *                     )
      *                 ),
      *                 @OA\Property(
      *                     property="today_stats",
      *                     type="object",
-     *                     @OA\Property(property="orders_today", type="integer", example=15),
-     *                     @OA\Property(property="revenue_today", type="number", format="float", example=2500.75),
-     *                     @OA\Property(property="new_customers", type="integer", example=8)
+     *                     description="Thống kê hôm nay",
+     *                     @OA\Property(property="orders_today", type="integer", example=15, description="Đơn hàng hôm nay"),
+     *                     @OA\Property(property="revenue_today", type="number", format="float", example=2500.75, description="Doanh thu hôm nay"),
+     *                     @OA\Property(property="new_customers", type="integer", example=8, description="Khách hàng mới hôm nay")
      *                 )
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Unauthorized - Invalid or missing JWT token",
+     *         description="Chưa xác thực - Token JWT không hợp lệ hoặc thiếu",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Unauthorized access")
+     *             @OA\Property(property="message", type="string", example="Truy cập không được phép")
      *         )
      *     ),
      *     @OA\Response(
      *         response=403,
-     *         description="Forbidden - Admin access required",
+     *         description="Bị cấm - Yêu cầu quyền Admin",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Admin access required")
+     *             @OA\Property(property="message", type="string", example="Yêu cầu quyền Admin")
      *         )
      *     ),
      *     @OA\Response(
      *         response=500,
-     *         description="Internal server error",
+     *         description="Lỗi máy chủ nội bộ",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Internal server error")
+     *             @OA\Property(property="message", type="string", example="Lỗi máy chủ nội bộ")
      *         )
      *     )
      * )
      */
-    #[Get(uri: 'dashboard', name: 'admin.statistics.dashboard')]
-    public function dashboardStats() {
+    public function dashboardStats()
+    {
         $today = Carbon::today();
         $overview = [
             'total_orders' => [
@@ -126,5 +139,140 @@ class StatisticsController extends Controller
             'overview' => $overview,
             'today_stats' => $todayStats,
         ], 'Lấy thống kê dashboard thành công', 200);
+    }
+
+    #[Get(uri: 'monthly-revenue', name: 'admin.statistics.monthly-revenue')]
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/statistics/monthly-revenue",
+     *     summary="Lấy thống kê doanh thu theo tháng",
+     *     description="Trả về doanh thu của 12 tháng trong năm để hiển thị biểu đồ",
+     *     operationId="getMonthlyRevenue",
+     *     tags={"Dashboard"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="year",
+     *         in="query",
+     *         description="Năm cần thống kê (mặc định là năm hiện tại)",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=2024)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy thống kê doanh thu theo tháng thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Lấy thống kê doanh thu theo tháng thành công"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="month", type="string", example="T1"),
+     *                     @OA\Property(property="revenue", type="number", example=45000000)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Chưa xác thực",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function monthlyRevenue(Request $request)
+    {
+        $year = $request->get('y', Carbon::now()->year);
+        $monthNames = [
+            1 => 'T1', 2 => 'T2', 3 => 'T3', 4 => 'T4',
+            5 => 'T5', 6 => 'T6', 7 => 'T7', 8 => 'T8',
+            9 => 'T9', 10 => 'T10', 11 => 'T11', 12 => 'T12'
+        ];
+        $monthlyRevenue = array_fill(1, 12, 0);
+        $invoices = Invoice::where('status', InvoiceStatus::PAID)
+            ->whereYear('created_at', $year)
+            ->get(['total_price', 'created_at']);
+        foreach ($invoices as $invoice) {
+            $month = (int) $invoice->created_at->format('n');
+            $monthlyRevenue[$month] += (float) $invoice->total_price;
+        }
+        $result = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $result[] = [
+                'month' => $monthNames[$month],
+                'revenue' => $monthlyRevenue[$month]
+            ];
+        }
+        return $this->json($result, 'Lấy doanh thu hàng tháng thành công', 200);
+    }
+
+    #[Get(uri: 'last-12-months-revenue', name: 'admin.statistics.last-12-months-revenue')]
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/statistics/last-12-months-revenue",
+     *     summary="Lấy thống kê doanh thu 12 tháng gần nhất",
+     *     description="Trả về doanh thu của 12 tháng gần nhất kể từ tháng hiện tại",
+     *     operationId="getLast12MonthsRevenue",
+     *     tags={"Dashboard"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Lấy thống kê 12 tháng gần nhất thành công"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="month", type="string", example="T1"),
+     *                     @OA\Property(property="revenue", type="number", example=45000000)
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function getLast12MonthsRevenue() 
+    {
+        $now = Carbon::now();
+        $result = [];
+        
+        // Lặp qua 12 tháng gần nhất
+        for ($i = 11; $i >= 0; $i--) {
+            $date = $now->copy()->subMonths($i);
+            $monthName = 'T' . $date->month;
+            
+            // Lấy doanh thu của tháng này
+            $revenue = Invoice::where('status', InvoiceStatus::PAID)
+                ->whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->sum('total_price');
+            
+            $result[] = [
+                'month' => $monthName,
+                'revenue' => (float) $revenue
+            ];
+        }
+        
+        return $this->json($result, 'Lấy thống kê 12 tháng gần nhất thành công', 200);
+    }
+
+    #[Get(uri: 'order-status', name: 'admin.statistics.order-status')]
+    public function orderStatusStats()
+    {
+        $statuses = OrderStatus::cases();
+        $result = [];
+        foreach ($statuses as $status) {
+            $count = Order::where('status', $status)->count();
+            $result[] = [
+                'status' => $status->value,
+                'count' => $count
+            ];
+        }
+        return $this->json($result, 'Lấy thống kê trạng thái đơn hàng thành công', 200);
     }
 }
