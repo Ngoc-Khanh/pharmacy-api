@@ -6585,14 +6585,14 @@
         "/api/v1/admin/statistics/dashboard": {
             "get": {
                 "tags": [
-                    "Admin Statistics"
+                    "Dashboard"
                 ],
-                "summary": "Get dashboard statistics",
-                "description": "Retrieve comprehensive dashboard statistics including orders, revenue, users, and medicines data",
+                "summary": "Lấy thống kê tổng quan dashboard",
+                "description": "Truy xuất thống kê tổng quan dashboard bao gồm dữ liệu đơn hàng, doanh thu, người dùng và thuốc",
                 "operationId": "getDashboardStats",
                 "responses": {
                     "200": {
-                        "description": "Dashboard statistics retrieved successfully",
+                        "description": "Lấy thống kê dashboard thành công",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6608,22 +6608,28 @@
                                         "data": {
                                             "properties": {
                                                 "overview": {
+                                                    "description": "Thống kê tổng quan",
                                                     "properties": {
                                                         "total_orders": {
+                                                            "description": "Thống kê đơn hàng",
                                                             "properties": {
                                                                 "total": {
+                                                                    "description": "Tổng số đơn hàng",
                                                                     "type": "integer",
                                                                     "example": 1250
                                                                 },
                                                                 "pending": {
+                                                                    "description": "Đơn hàng chờ xử lý",
                                                                     "type": "integer",
                                                                     "example": 45
                                                                 },
                                                                 "completed": {
+                                                                    "description": "Đơn hàng hoàn thành",
                                                                     "type": "integer",
                                                                     "example": 1150
                                                                 },
                                                                 "cancelled": {
+                                                                    "description": "Đơn hàng đã hủy",
                                                                     "type": "integer",
                                                                     "example": 55
                                                                 }
@@ -6631,21 +6637,26 @@
                                                             "type": "object"
                                                         },
                                                         "total_revenue": {
+                                                            "description": "Tổng doanh thu",
                                                             "type": "number",
                                                             "format": "float",
                                                             "example": 125000.5
                                                         },
                                                         "total_users": {
+                                                            "description": "Thống kê người dùng",
                                                             "properties": {
                                                                 "total": {
+                                                                    "description": "Tổng số khách hàng",
                                                                     "type": "integer",
                                                                     "example": 500
                                                                 },
                                                                 "pharmacists": {
+                                                                    "description": "Số dược sĩ",
                                                                     "type": "integer",
                                                                     "example": 25
                                                                 },
                                                                 "customers": {
+                                                                    "description": "Số khách hàng",
                                                                     "type": "integer",
                                                                     "example": 500
                                                                 }
@@ -6653,16 +6664,20 @@
                                                             "type": "object"
                                                         },
                                                         "total_medicines": {
+                                                            "description": "Thống kê thuốc",
                                                             "properties": {
                                                                 "total": {
+                                                                    "description": "Tổng số loại thuốc",
                                                                     "type": "integer",
                                                                     "example": 350
                                                                 },
                                                                 "in_stock": {
+                                                                    "description": "Thuốc còn hàng",
                                                                     "type": "integer",
                                                                     "example": 320
                                                                 },
                                                                 "out_of_stock": {
+                                                                    "description": "Thuốc hết hàng",
                                                                     "type": "integer",
                                                                     "example": 30
                                                                 }
@@ -6673,17 +6688,21 @@
                                                     "type": "object"
                                                 },
                                                 "today_stats": {
+                                                    "description": "Thống kê hôm nay",
                                                     "properties": {
                                                         "orders_today": {
+                                                            "description": "Đơn hàng hôm nay",
                                                             "type": "integer",
                                                             "example": 15
                                                         },
                                                         "revenue_today": {
+                                                            "description": "Doanh thu hôm nay",
                                                             "type": "number",
                                                             "format": "float",
                                                             "example": 2500.75
                                                         },
                                                         "new_customers": {
+                                                            "description": "Khách hàng mới hôm nay",
                                                             "type": "integer",
                                                             "example": 8
                                                         }
@@ -6700,7 +6719,7 @@
                         }
                     },
                     "401": {
-                        "description": "Unauthorized - Invalid or missing JWT token",
+                        "description": "Chưa xác thực - Token JWT không hợp lệ hoặc thiếu",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6711,7 +6730,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Unauthorized access"
+                                            "example": "Truy cập không được phép"
                                         }
                                     },
                                     "type": "object"
@@ -6720,7 +6739,7 @@
                         }
                     },
                     "403": {
-                        "description": "Forbidden - Admin access required",
+                        "description": "Bị cấm - Yêu cầu quyền Admin",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6731,7 +6750,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Admin access required"
+                                            "example": "Yêu cầu quyền Admin"
                                         }
                                     },
                                     "type": "object"
@@ -6740,7 +6759,7 @@
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Lỗi máy chủ nội bộ",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6751,7 +6770,145 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Internal server error"
+                                            "example": "Lỗi máy chủ nội bộ"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/statistics/monthly-revenue": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Lấy thống kê doanh thu theo tháng",
+                "description": "Trả về doanh thu của 12 tháng trong năm để hiển thị biểu đồ",
+                "operationId": "getMonthlyRevenue",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "description": "Năm cần thống kê (mặc định là năm hiện tại)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2024
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thống kê doanh thu theo tháng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thống kê doanh thu theo tháng thành công"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "month": {
+                                                        "type": "string",
+                                                        "example": "T1"
+                                                    },
+                                                    "revenue": {
+                                                        "type": "number",
+                                                        "example": 45000000
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/statistics/last-12-months-revenue": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Lấy thống kê doanh thu 12 tháng gần nhất",
+                "description": "Trả về doanh thu của 12 tháng gần nhất kể từ tháng hiện tại",
+                "operationId": "getLast12MonthsRevenue",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thống kê 12 tháng gần nhất thành công"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "month": {
+                                                        "type": "string",
+                                                        "example": "T1"
+                                                    },
+                                                    "revenue": {
+                                                        "type": "number",
+                                                        "example": 45000000
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
                                         }
                                     },
                                     "type": "object"
@@ -9290,6 +9447,10 @@
             "description": "Đánh giá sản phẩm"
         },
         {
+            "name": "Dashboard",
+            "description": "Các API endpoint để quản lý thống kê tổng quan dashboard cho quản trị viên"
+        },
+        {
             "name": "Store",
             "description": "Các API cho Pharmacity Store"
         },
@@ -9300,10 +9461,6 @@
         {
             "name": "Users",
             "description": "Quản lý người dùng hệ thống"
-        },
-        {
-            "name": "Admin Statistics",
-            "description": "Admin Statistics"
         },
         {
             "name": "Test",
