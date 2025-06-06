@@ -6582,6 +6582,191 @@
                 ]
             }
         },
+        "/api/v1/admin/statistics/dashboard": {
+            "get": {
+                "tags": [
+                    "Admin Statistics"
+                ],
+                "summary": "Get dashboard statistics",
+                "description": "Retrieve comprehensive dashboard statistics including orders, revenue, users, and medicines data",
+                "operationId": "getDashboardStats",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard statistics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thống kê dashboard thành công"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "overview": {
+                                                    "properties": {
+                                                        "total_orders": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1250
+                                                                },
+                                                                "pending": {
+                                                                    "type": "integer",
+                                                                    "example": 45
+                                                                },
+                                                                "completed": {
+                                                                    "type": "integer",
+                                                                    "example": 1150
+                                                                },
+                                                                "cancelled": {
+                                                                    "type": "integer",
+                                                                    "example": 55
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "total_revenue": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 125000.5
+                                                        },
+                                                        "total_users": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 500
+                                                                },
+                                                                "pharmacists": {
+                                                                    "type": "integer",
+                                                                    "example": 25
+                                                                },
+                                                                "customers": {
+                                                                    "type": "integer",
+                                                                    "example": 500
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "total_medicines": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 350
+                                                                },
+                                                                "in_stock": {
+                                                                    "type": "integer",
+                                                                    "example": 320
+                                                                },
+                                                                "out_of_stock": {
+                                                                    "type": "integer",
+                                                                    "example": 30
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "today_stats": {
+                                                    "properties": {
+                                                        "orders_today": {
+                                                            "type": "integer",
+                                                            "example": 15
+                                                        },
+                                                        "revenue_today": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 2500.75
+                                                        },
+                                                        "new_customers": {
+                                                            "type": "integer",
+                                                            "example": 8
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing JWT token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized access"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin access required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Admin access required"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Internal server error"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/medicines": {
             "get": {
                 "tags": [
@@ -9115,6 +9300,10 @@
         {
             "name": "Users",
             "description": "Quản lý người dùng hệ thống"
+        },
+        {
+            "name": "Admin Statistics",
+            "description": "Admin Statistics"
         },
         {
             "name": "Test",
