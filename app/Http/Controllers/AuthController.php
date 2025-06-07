@@ -278,6 +278,8 @@ class AuthController extends Controller
       return $this->fail(null, "Mã xác minh không chính xác", 400);
     }
     $user->markEmailAsVerified();
+    $user->status = UserStatus::ACTIVE->value;
+    $user->save();
     Log::info('User email verified', ['user_id' => $user->id, 'email' => $user->email]);
     return $this->json($user, "Xác minh email thành công", 200);
   }
