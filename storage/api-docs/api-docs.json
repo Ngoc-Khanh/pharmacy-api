@@ -6582,7 +6582,7 @@
                 ]
             }
         },
-        "/api/v1/admin/statistics/dashboard": {
+        "/v1/admin/statistics/dashboard": {
             "get": {
                 "tags": [
                     "Dashboard"
@@ -6786,7 +6786,7 @@
                 ]
             }
         },
-        "/api/v1/admin/statistics/monthly-revenue": {
+        "/v1/admin/statistics/monthly-revenue": {
             "get": {
                 "tags": [
                     "Dashboard"
@@ -6871,7 +6871,7 @@
                 ]
             }
         },
-        "/api/v1/admin/statistics/last-12-months-revenue": {
+        "/v1/admin/statistics/last-12-months-revenue": {
             "get": {
                 "tags": [
                     "Dashboard"
@@ -6909,6 +6909,121 @@
                                                 },
                                                 "type": "object"
                                             }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/statistics/order-status": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Lấy thống kê trạng thái đơn hàng",
+                "description": "Trả về số lượng đơn hàng theo từng trạng thái để hiển thị biểu đồ",
+                "operationId": "getOrderStatusStats",
+                "responses": {
+                    "200": {
+                        "description": "Lấy thống kê trạng thái đơn hàng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thống kê trạng thái đơn hàng thành công"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "status": {
+                                                        "description": "Trạng thái đơn hàng",
+                                                        "type": "string",
+                                                        "example": "pending"
+                                                    },
+                                                    "count": {
+                                                        "description": "Số lượng đơn hàng",
+                                                        "type": "integer",
+                                                        "example": 45
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực - Token JWT không hợp lệ hoặc thiếu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Truy cập không được phép"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Bị cấm - Yêu cầu quyền Admin",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Yêu cầu quyền Admin"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi máy chủ nội bộ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lỗi máy chủ nội bộ"
                                         }
                                     },
                                     "type": "object"

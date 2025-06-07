@@ -187,9 +187,18 @@ class StatisticsController extends Controller
     {
         $year = $request->get('y', Carbon::now()->year);
         $monthNames = [
-            1 => 'T1', 2 => 'T2', 3 => 'T3', 4 => 'T4',
-            5 => 'T5', 6 => 'T6', 7 => 'T7', 8 => 'T8',
-            9 => 'T9', 10 => 'T10', 11 => 'T11', 12 => 'T12'
+            1 => 'T1',
+            2 => 'T2',
+            3 => 'T3',
+            4 => 'T4',
+            5 => 'T5',
+            6 => 'T6',
+            7 => 'T7',
+            8 => 'T8',
+            9 => 'T9',
+            10 => 'T10',
+            11 => 'T11',
+            12 => 'T12'
         ];
         $monthlyRevenue = array_fill(1, 12, 0);
         $invoices = Invoice::where('status', InvoiceStatus::PAID)
@@ -236,32 +245,83 @@ class StatisticsController extends Controller
      *     )
      * )
      */
-    public function getLast12MonthsRevenue() 
+    public function getLast12MonthsRevenue()
     {
         $now = Carbon::now();
         $result = [];
-        
+
         // Lặp qua 12 tháng gần nhất
         for ($i = 11; $i >= 0; $i--) {
             $date = $now->copy()->subMonths($i);
             $monthName = 'T' . $date->month;
-            
+
             // Lấy doanh thu của tháng này
             $revenue = Invoice::where('status', InvoiceStatus::PAID)
                 ->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month)
                 ->sum('total_price');
-            
+
             $result[] = [
                 'month' => $monthName,
                 'revenue' => (float) $revenue
             ];
         }
-        
+
         return $this->json($result, 'Lấy thống kê 12 tháng gần nhất thành công', 200);
     }
 
     #[Get(uri: 'order-status', name: 'admin.statistics.order-status')]
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/statistics/order-status",
+     *     summary="Lấy thống kê trạng thái đơn hàng",
+     *     description="Trả về số lượng đơn hàng theo từng trạng thái để hiển thị biểu đồ",
+     *     operationId="getOrderStatusStats",
+     *     tags={"Dashboard"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy thống kê trạng thái đơn hàng thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Lấy thống kê trạng thái đơn hàng thành công"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="status", type="string", example="pending", description="Trạng thái đơn hàng"),
+     *                     @OA\Property(property="count", type="integer", example=45, description="Số lượng đơn hàng")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Chưa xác thực - Token JWT không hợp lệ hoặc thiếu",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Truy cập không được phép")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Bị cấm - Yêu cầu quyền Admin",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Yêu cầu quyền Admin")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi máy chủ nội bộ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Lỗi máy chủ nội bộ")
+     *         )
+     *     )
+     * )
+     */
     public function orderStatusStats()
     {
         $statuses = OrderStatus::cases();
