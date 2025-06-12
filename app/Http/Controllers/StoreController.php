@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\MedicineStatus;
 use App\Enums\OrderStatus;
 use App\Models\Category;
 use App\Models\Invoice;
@@ -26,81 +27,91 @@ class StoreController extends Controller
     /**
      * @OA\Get(
      *     path="/v1/store/medicines",
-     *     summary="Lấy danh sách thuốc có phân trang và bộ lọc nâng cao",
+     *     summary="Lấy danh sách thuốc với phân trang và bộ lọc nâng cao",
+     *     description="API để lấy danh sách thuốc có hỗ trợ tìm kiếm, lọc theo danh mục, giá, đánh giá và sắp xếp",
      *     tags={"Store"},
      *     @OA\Parameter(
      *         name="page",
      *         in="query",
-     *         description="Số trang",
+     *         description="Số trang hiện tại",
      *         required=false,
-     *         @OA\Schema(type="integer", default=1)
+     *         @OA\Schema(type="integer", default=1, minimum=1, example=1)
      *     ),
      *     @OA\Parameter(
      *         name="per_page",
      *         in="query",
-     *         description="Số sản phẩm mỗi trang",
+     *         description="Số lượng thuốc trên mỗi trang (tối đa 100)",
      *         required=false,
-     *         @OA\Schema(type="integer", default=20, maximum=100)
+     *         @OA\Schema(type="integer", default=20, minimum=1, maximum=100, example=20)
      *     ),
      *     @OA\Parameter(
      *         name="search",
      *         in="query",
-     *         description="Từ khóa tìm kiếm theo tên hoặc slug",
+     *         description="Từ khóa tìm kiếm theo tên, slug hoặc mô tả thuốc",
      *         required=false,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", example="paracetamol")
      *     ),
      *     @OA\Parameter(
      *         name="category",
      *         in="query",
-     *         description="ID danh mục",
+     *         description="ID danh mục hoặc nhiều ID phân cách bằng dấu phẩy",
      *         required=false,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", example="1,2,3")
      *     ),
      *     @OA\Parameter(
      *         name="category_slug",
      *         in="query",
-     *         description="Slug danh mục",
+     *         description="Slug danh mục hoặc nhiều slug phân cách bằng dấu phẩy",
      *         required=false,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", example="giam-dau,khang-sinh")
      *     ),
      *     @OA\Parameter(
      *         name="min_price",
      *         in="query",
-     *         description="Giá tối thiểu",
+     *         description="Giá tối thiểu (VNĐ)",
      *         required=false,
-     *         @OA\Schema(type="number")
+     *         @OA\Schema(type="number", minimum=0, example=10000)
      *     ),
      *     @OA\Parameter(
      *         name="max_price",
      *         in="query",
-     *         description="Giá tối đa",
+     *         description="Giá tối đa (VNĐ)",
      *         required=false,
-     *         @OA\Schema(type="number")
+     *         @OA\Schema(type="number", minimum=0, example=500000)
      *     ),
      *     @OA\Parameter(
      *         name="min_rating",
      *         in="query",
-     *         description="Đánh giá tối thiểu",
+     *         description="Đánh giá tối thiểu (từ 0-5 sao)",
      *         required=false,
-     *         @OA\Schema(type="number", minimum=0, maximum=5)
+     *         @OA\Schema(type="number", minimum=0, maximum=5, example=4.0)
      *     ),
      *     @OA\Parameter(
      *         name="status",
      *         in="query",
-     *         description="Trạng thái tồn kho",
+     *         description="Trạng thái tồn kho (có thể nhiều trạng thái phân cách bằng dấu phẩy)",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"IN-STOCK", "OUT-OF-STOCK", "LOW-STOCK"})
+     *         @OA\Schema(
+     *             type="string", 
+     *             enum={"IN-STOCK", "OUT-OF-STOCK"}, 
+     *             example="IN-STOCK"
+     *         )
      *     ),
      *     @OA\Parameter(
      *         name="sort_by",
      *         in="query",
-     *         description="Sắp xếp theo",
+     *         description="Tiêu chí sắp xếp danh sách thuốc",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"price_asc", "price_desc", "name_asc", "name_desc", "rating_desc", "newest", "oldest"})
+     *         @OA\Schema(
+     *             type="string", 
+     *             enum={"price_asc", "price_desc", "name_asc", "name_desc", "rating_desc", "newest", "oldest"}, 
+     *             default="newest",
+     *             example="price_asc"
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Thành công",
+     *         description="Lấy danh sách thuốc thành công",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(property="success", type="boolean", example=true),
@@ -110,28 +121,77 @@ class StoreController extends Controller
      *                 type="object",
      *                 @OA\Property(property="current_page", type="integer", example=1),
      *                 @OA\Property(property="per_page", type="integer", example=20),
+     *                 @OA\Property(property="total", type="integer", example=150),
+     *                 @OA\Property(property="last_page", type="integer", example=8),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="to", type="integer", example=20),
+     *                 @OA\Property(property="path", type="string", example="/v1/store/medicines"),
      *                 @OA\Property(
      *                     property="data",
      *                     type="array",
      *                     @OA\Items(
      *                         type="object",
      *                         @OA\Property(property="id", type="string", example="65f43c2a8e5c5"),
-     *                         @OA\Property(property="name", type="string", example="Paracetamol"),
+     *                         @OA\Property(property="name", type="string", example="Paracetamol 500mg"),
+     *                         @OA\Property(property="slug", type="string", example="paracetamol-500mg"),
+     *                         @OA\Property(property="description", type="string", example="Thuốc giảm đau, hạ sốt"),
      *                         @OA\Property(property="price", type="number", example=15000),
      *                         @OA\Property(property="stock", type="integer", example=100),
-     *                         @OA\Property(property="status", type="string", example="IN-STOCK"),
-     *                         @OA\Property(property="ratings", type="object",
-     *                             @OA\Property(property="star", type="number", example=4.5)
+     *                         @OA\Property(property="image_url", type="string", example="https://example.com/image.jpg"),
+     *                         @OA\Property(
+     *                             property="ratings",
+     *                             type="object",
+     *                             @OA\Property(property="star", type="number", example=4.5),
+     *                             @OA\Property(property="liked", type="integer", example=125)
      *                         ),
-     *                         @OA\Property(property="category", type="object"),
-     *                         @OA\Property(property="supplier", type="object")
+     *                         @OA\Property(
+     *                             property="category",
+     *                             type="object",
+     *                             @OA\Property(property="id", type="string", example="cat_001"),
+     *                             @OA\Property(property="name", type="string", example="Giảm đau"),
+     *                             @OA\Property(property="slug", type="string", example="giam-dau")
+     *                         ),
+     *                         @OA\Property(
+     *                             property="supplier",
+     *                             type="object",
+     *                             @OA\Property(property="id", type="string", example="sup_001"),
+     *                             @OA\Property(property="name", type="string", example="Dược phẩm ABC"),
+     *                             @OA\Property(property="email", type="string", example="contact@abc.com")
+     *                         ),
+     *                         @OA\Property(property="created_at", type="string", format="date-time", example="2024-01-15T10:30:00Z"),
+     *                         @OA\Property(property="updated_at", type="string", format="date-time", example="2024-01-20T14:25:00Z")
      *                     )
      *                 ),
-     *                 @OA\Property(property="total", type="integer", example=50),
-     *                 @OA\Property(property="last_page", type="integer", example=3),
-     *                 @OA\Property(property="from", type="integer", example=1),
-     *                 @OA\Property(property="to", type="integer", example=20)
-     *             )
+     *                 @OA\Property(
+     *                     property="links",
+     *                     type="object",
+     *                     @OA\Property(property="first", type="string", example="/v1/store/medicines?page=1"),
+     *                     @OA\Property(property="last", type="string", example="/v1/store/medicines?page=8"),
+     *                     @OA\Property(property="prev", type="string", nullable=true, example=null),
+     *                     @OA\Property(property="next", type="string", example="/v1/store/medicines?page=2")
+     *                 )
+     *             ),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Tham số không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Tham số per_page không được vượt quá 100"),
+     *             @OA\Property(property="data", type="null", example=null),
+     *             @OA\Property(property="status", type="integer", example=400)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Có lỗi xảy ra khi lấy danh sách thuốc"),
+     *             @OA\Property(property="data", type="null", example=null),
+     *             @OA\Property(property="status", type="integer", example=500)
      *         )
      *     )
      * )
@@ -148,26 +208,53 @@ class StoreController extends Controller
                     ->orWhere('description', 'like', "%{$search}%");
             });
         }
-        if ($categoryId = $request->query('category')) $query->where('category_id', $categoryId);
+        if ($categoryId = $request->query('category')) {
+            if (is_string($categoryId) && str_contains($categoryId, ',')) {
+                $categoryIds = array_map('intval', explode(',', $categoryId));
+                $query->whereIn('category_id', $categoryIds);
+            } else {
+                $query->where('category_id', $categoryId);
+            }
+        }
         if ($categorySlug = $request->query('category_slug')) {
-            $query->whereHas('category', function ($q) use ($categorySlug) {
-                $q->where('slug', $categorySlug);
-            });
+            if (is_string($categorySlug) && str_contains($categorySlug, ',')) {
+                $categorySlugs = array_map('trim', explode(',', $categorySlug));
+                $query->whereHas('category', function ($q) use ($categorySlugs) {
+                    $q->whereIn('slug', $categorySlugs);
+                });
+            } else {
+                $query->whereHas('category', function ($q) use ($categorySlug) {
+                    $q->where('slug', $categorySlug);
+                });
+            }
         }
         if ($minPrice = $request->query('min_price')) $query->where('price', '>=', (float)$minPrice);
         if ($maxPrice = $request->query('max_price')) $query->where('price', '<=', (float)$maxPrice);
         if ($minRating = $request->query('min_rating')) $query->where('ratings.star', '>=', (float)$minRating);
         if ($status = $request->query('status')) {
-            switch (strtoupper($status)) {
-                case 'IN-STOCK':
-                    $query->where('stock', '>', 10);
-                    break;
-                case 'LOW-STOCK':
-                    $query->whereBetween('stock', [1, 10]);
-                    break;
-                case 'OUT-OF-STOCK':
-                    $query->where('stock', '<=', 0);
-                    break;
+            if (is_string($status) && str_contains($status, ',')) {
+                $statuses = array_map('trim', explode(',', $status));
+                $query->where(function ($q) use ($statuses) {
+                    foreach ($statuses as $singleStatus) {
+                        switch (strtoupper($singleStatus)) {
+                            case MedicineStatus::IN_STOCK->value:
+                                $q->orWhere('stock', '>', 10);
+                                break;
+                            case MedicineStatus::OUT_OF_STOCK->value:
+                                $q->orWhere('stock', '<=', 0);
+                                break;
+                        }
+                    }
+                });
+            } else {
+                switch (strtoupper($status)) {
+                    case MedicineStatus::IN_STOCK->value:
+                        $query->where('stock', '>', 10);
+                        break;
+                    case MedicineStatus::OUT_OF_STOCK->value:
+                        $query->where('stock', '<=', 0);
+                        break;
+                }
             }
         }
         $sortBy = $request->query('sort_by', 'newest');
