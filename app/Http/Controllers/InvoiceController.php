@@ -154,6 +154,31 @@ class InvoiceController extends Controller
         return $this->json($invoice, 'Lấy chi tiết hóa đơn thành công', 200);
     }
 
+    #[Get(uri: "/store/invoices/{id}/details-with-orders-id", name: "store.invoices.detailsWithOrdersId")]
+    public function invoicesDetailsWithOrdersId($id)
+    {
+        $order = Order::where('_id', $id)->first();
+        if (!$order) return $this->fail(null, 'Đơn hàng không tồn tại', 400);
+        $invoice = Invoice::where('order_id', $order->_id)->first();
+        if (!$invoice) return $this->fail(null, 'Hóa đơn không tồn tại', 400);
+        $invoice->order = [
+            'shipping_fee' => $order->shipping_fee,
+            'discount' => $order->discount,
+            'shipping_address' => $order->shipping_address,
+        ];
+        $orderItems = $order->items;
+        $medicineIds = array_column($orderItems, 'medicine_id');
+        $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
+        $orderItems = collect($orderItems)->map(function ($item) use ($medicines) {
+            if (isset($medicines[$item['medicine_id']])) {
+                $item['medicine'] = $medicines[$item['medicine_id']];
+            }
+            return $item;
+        });
+        $invoice->items = $orderItems;
+        return $this->json($invoice, 'Lấy chi tiết hóa đơn thành công', 200);
+    }
+
     #[Post(uri: "/store/invoices/create", name: "store.invoices.create")]
     /**
      * @OA\Post(
