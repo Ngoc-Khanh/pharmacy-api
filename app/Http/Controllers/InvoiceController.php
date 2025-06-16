@@ -155,6 +155,70 @@ class InvoiceController extends Controller
     }
 
     #[Get(uri: "/store/invoices/{id}/details-with-orders-id", name: "store.invoices.detailsWithOrdersId")]
+    /**
+     * @OA\Get(
+     *     path="/v1/store/invoices/{id}/details-with-orders-id",
+     *     operationId="getInvoiceDetailsByOrderId",
+     *     tags={"Invoices"},
+     *     summary="Lấy chi tiết hóa đơn theo order ID",
+     *     description="Lấy chi tiết hóa đơn bằng cách sử dụng order ID",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của đơn hàng",
+     *         @OA\Schema(type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy chi tiết hóa đơn thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="order_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="invoice_number", type="string", example="INV-20230615-001"),
+     *                 @OA\Property(property="order", type="object",
+     *                     @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                     @OA\Property(property="discount", type="number", example=5000),
+     *                     @OA\Property(property="shipping_address", type="string", example="123 Nguyễn Trãi, Q.1, TP.HCM")
+     *                 ),
+     *                 @OA\Property(property="items", type="array", 
+     *                     @OA\Items(
+     *                         @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="quantity", type="integer", example=2),
+     *                         @OA\Property(property="price", type="number", example=15000),
+     *                         @OA\Property(property="item_total", type="number", example=30000),
+     *                         @OA\Property(property="medicine", type="object",
+     *                             @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                             @OA\Property(property="name", type="string", example="Paracetamol 500mg"),
+     *                             @OA\Property(property="price", type="number", example=15000),
+     *                             @OA\Property(property="thumbnail", type="object",
+     *                                 @OA\Property(property="url", type="string", example="https://example.com/images/paracetamol.jpg")
+     *                             )
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="total_price", type="number", example=45000),
+     *                 @OA\Property(property="payment_method", type="string", example="COD"),
+     *                 @OA\Property(property="status", type="string", example="PAID", description="PENDING, PAID, CANCELLED, REFUNDED")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy chi tiết hóa đơn thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Đơn hàng hoặc hóa đơn không tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Đơn hàng không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=400)
+     *         )
+     *     )
+     * )
+     */
     public function invoicesDetailsWithOrdersId($id)
     {
         $order = Order::where('_id', $id)->first();
