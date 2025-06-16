@@ -3576,6 +3576,179 @@
                 ]
             }
         },
+        "/v1/store/invoices/{id}/details-with-orders-id": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Lấy chi tiết hóa đơn theo order ID",
+                "description": "Lấy chi tiết hóa đơn bằng cách sử dụng order ID",
+                "operationId": "getInvoiceDetailsByOrderId",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy chi tiết hóa đơn thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "order_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "invoice_number": {
+                                                    "type": "string",
+                                                    "example": "INV-20230615-001"
+                                                },
+                                                "order": {
+                                                    "properties": {
+                                                        "shipping_fee": {
+                                                            "type": "number",
+                                                            "example": 15000
+                                                        },
+                                                        "discount": {
+                                                            "type": "number",
+                                                            "example": 5000
+                                                        },
+                                                        "shipping_address": {
+                                                            "type": "string",
+                                                            "example": "123 Nguyễn Trãi, Q.1, TP.HCM"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "medicine_id": {
+                                                                "type": "string",
+                                                                "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "price": {
+                                                                "type": "number",
+                                                                "example": 15000
+                                                            },
+                                                            "item_total": {
+                                                                "type": "number",
+                                                                "example": 30000
+                                                            },
+                                                            "medicine": {
+                                                                "properties": {
+                                                                    "_id": {
+                                                                        "type": "string",
+                                                                        "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Paracetamol 500mg"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "example": 15000
+                                                                    },
+                                                                    "thumbnail": {
+                                                                        "properties": {
+                                                                            "url": {
+                                                                                "type": "string",
+                                                                                "example": "https://example.com/images/paracetamol.jpg"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "total_price": {
+                                                    "type": "number",
+                                                    "example": 45000
+                                                },
+                                                "payment_method": {
+                                                    "type": "string",
+                                                    "example": "COD"
+                                                },
+                                                "status": {
+                                                    "description": "PENDING, PAID, CANCELLED, REFUNDED",
+                                                    "type": "string",
+                                                    "example": "PAID"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy chi tiết hóa đơn thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Đơn hàng hoặc hóa đơn không tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng không tồn tại"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 400
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/invoices/create": {
             "post": {
                 "tags": [
@@ -7044,107 +7217,121 @@
                 "tags": [
                     "Store"
                 ],
-                "summary": "Lấy danh sách thuốc có phân trang và bộ lọc nâng cao",
+                "summary": "Lấy danh sách thuốc với phân trang và bộ lọc nâng cao",
+                "description": "API để lấy danh sách thuốc có hỗ trợ tìm kiếm, lọc theo danh mục, giá, đánh giá và sắp xếp",
                 "operationId": "81b256f0194ea99f51f89c58b204aaf5",
                 "parameters": [
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "Số trang",
+                        "description": "Số trang hiện tại",
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "default": 1
+                            "default": 1,
+                            "minimum": 1,
+                            "example": 1
                         }
                     },
                     {
                         "name": "per_page",
                         "in": "query",
-                        "description": "Số sản phẩm mỗi trang",
+                        "description": "Số lượng thuốc trên mỗi trang (tối đa 100)",
                         "required": false,
                         "schema": {
                             "type": "integer",
                             "default": 20,
-                            "maximum": 100
+                            "maximum": 100,
+                            "minimum": 1,
+                            "example": 20
                         }
                     },
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "Từ khóa tìm kiếm theo tên hoặc slug",
+                        "description": "Từ khóa tìm kiếm theo tên, slug hoặc mô tả thuốc",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "example": "paracetamol"
                         }
                     },
                     {
                         "name": "category",
                         "in": "query",
-                        "description": "ID danh mục",
+                        "description": "ID danh mục hoặc nhiều ID phân cách bằng dấu phẩy",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "example": "1,2,3"
                         }
                     },
                     {
                         "name": "category_slug",
                         "in": "query",
-                        "description": "Slug danh mục",
+                        "description": "Slug danh mục hoặc nhiều slug phân cách bằng dấu phẩy",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "example": "giam-dau,khang-sinh"
                         }
                     },
                     {
                         "name": "min_price",
                         "in": "query",
-                        "description": "Giá tối thiểu",
+                        "description": "Giá tối thiểu (VNĐ)",
                         "required": false,
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "minimum": 0,
+                            "example": 10000
                         }
                     },
                     {
                         "name": "max_price",
                         "in": "query",
-                        "description": "Giá tối đa",
+                        "description": "Giá tối đa (VNĐ)",
                         "required": false,
                         "schema": {
-                            "type": "number"
+                            "type": "number",
+                            "minimum": 0,
+                            "example": 500000
                         }
                     },
                     {
                         "name": "min_rating",
                         "in": "query",
-                        "description": "Đánh giá tối thiểu",
+                        "description": "Đánh giá tối thiểu (từ 0-5 sao)",
                         "required": false,
                         "schema": {
                             "type": "number",
                             "maximum": 5,
-                            "minimum": 0
+                            "minimum": 0,
+                            "example": 4
                         }
                     },
                     {
                         "name": "status",
                         "in": "query",
-                        "description": "Trạng thái tồn kho",
+                        "description": "Trạng thái tồn kho (có thể nhiều trạng thái phân cách bằng dấu phẩy)",
                         "required": false,
                         "schema": {
                             "type": "string",
                             "enum": [
                                 "IN-STOCK",
-                                "OUT-OF-STOCK",
-                                "LOW-STOCK"
-                            ]
+                                "OUT-OF-STOCK"
+                            ],
+                            "example": "IN-STOCK"
                         }
                     },
                     {
                         "name": "sort_by",
                         "in": "query",
-                        "description": "Sắp xếp theo",
+                        "description": "Tiêu chí sắp xếp danh sách thuốc",
                         "required": false,
                         "schema": {
                             "type": "string",
+                            "default": "newest",
                             "enum": [
                                 "price_asc",
                                 "price_desc",
@@ -7153,13 +7340,14 @@
                                 "rating_desc",
                                 "newest",
                                 "oldest"
-                            ]
+                            ],
+                            "example": "price_asc"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thành công",
+                        "description": "Lấy danh sách thuốc thành công",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7182,6 +7370,26 @@
                                                     "type": "integer",
                                                     "example": 20
                                                 },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 8
+                                                },
+                                                "from": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "to": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "path": {
+                                                    "type": "string",
+                                                    "example": "/v1/store/medicines"
+                                                },
                                                 "data": {
                                                     "type": "array",
                                                     "items": {
@@ -7192,7 +7400,15 @@
                                                             },
                                                             "name": {
                                                                 "type": "string",
-                                                                "example": "Paracetamol"
+                                                                "example": "Paracetamol 500mg"
+                                                            },
+                                                            "slug": {
+                                                                "type": "string",
+                                                                "example": "paracetamol-500mg"
+                                                            },
+                                                            "description": {
+                                                                "type": "string",
+                                                                "example": "Thuốc giảm đau, hạ sốt"
                                                             },
                                                             "price": {
                                                                 "type": "number",
@@ -7202,47 +7418,155 @@
                                                                 "type": "integer",
                                                                 "example": 100
                                                             },
-                                                            "status": {
+                                                            "image_url": {
                                                                 "type": "string",
-                                                                "example": "IN-STOCK"
+                                                                "example": "https://example.com/image.jpg"
                                                             },
                                                             "ratings": {
                                                                 "properties": {
                                                                     "star": {
                                                                         "type": "number",
                                                                         "example": 4.5
+                                                                    },
+                                                                    "liked": {
+                                                                        "type": "integer",
+                                                                        "example": 125
                                                                     }
                                                                 },
                                                                 "type": "object"
                                                             },
                                                             "category": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "string",
+                                                                        "example": "cat_001"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Giảm đau"
+                                                                    },
+                                                                    "slug": {
+                                                                        "type": "string",
+                                                                        "example": "giam-dau"
+                                                                    }
+                                                                },
                                                                 "type": "object"
                                                             },
                                                             "supplier": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "string",
+                                                                        "example": "sup_001"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Dược phẩm ABC"
+                                                                    },
+                                                                    "email": {
+                                                                        "type": "string",
+                                                                        "example": "contact@abc.com"
+                                                                    }
+                                                                },
                                                                 "type": "object"
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2024-01-15T10:30:00Z"
+                                                            },
+                                                            "updated_at": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2024-01-20T14:25:00Z"
                                                             }
                                                         },
                                                         "type": "object"
                                                     }
                                                 },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "example": 50
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "example": 3
-                                                },
-                                                "from": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "to": {
-                                                    "type": "integer",
-                                                    "example": 20
+                                                "links": {
+                                                    "properties": {
+                                                        "first": {
+                                                            "type": "string",
+                                                            "example": "/v1/store/medicines?page=1"
+                                                        },
+                                                        "last": {
+                                                            "type": "string",
+                                                            "example": "/v1/store/medicines?page=8"
+                                                        },
+                                                        "prev": {
+                                                            "type": "string",
+                                                            "example": null,
+                                                            "nullable": true
+                                                        },
+                                                        "next": {
+                                                            "type": "string",
+                                                            "example": "/v1/store/medicines?page=2"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 }
                                             },
                                             "type": "object"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Tham số không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tham số per_page không được vượt quá 100"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 400
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Có lỗi xảy ra khi lấy danh sách thuốc"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 500
                                         }
                                     },
                                     "type": "object"
