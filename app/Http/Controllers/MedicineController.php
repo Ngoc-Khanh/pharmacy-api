@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Medicine;
+use App\Services\EmbeddingService;
 use App\Utils\ImageUtils;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -25,6 +26,13 @@ use Spatie\RouteAttributes\Attributes\Middleware;
  */
 class MedicineController extends Controller
 {
+    protected EmbeddingService $embeddingService;
+
+    public function __construct(EmbeddingService $embeddingService)
+    {
+        $this->embeddingService = $embeddingService;
+    }
+
     /**
      * @OA\Get(
      *     path="/v1/admin/medicines",
@@ -59,27 +67,82 @@ class MedicineController extends Controller
     public function listMedicine(Request $request)
     {
         $query = Medicine::with(['category', 'supplier']);
-        if ($request->has('s') && !empty($request->search)) {
+
+        // Fix: Check for 'search' parameter instead of 's'
+        if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
                     ->orWhere('description', 'like', "%{$searchTerm}%")
-                    ->orWhere('details.ingredients', 'like', "%{$searchTerm}%");
+                    ->orWhere('details.ingredients', 'like', "%{$searchTerm}%")
+                    // Add more searchable fields if needed
+                    ->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
+                        $categoryQuery->where('name', 'like', "%{$searchTerm}%");
+                    })
+                    ->orWhereHas('supplier', function ($supplierQuery) use ($searchTerm) {
+                        $supplierQuery->where('name', 'like', "%{$searchTerm}%");
+                    });
             });
         }
-        if ($request->has('category_id') && !empty($request->category_id)) $query->where('category_id', $request->category_id);
-        if ($request->has('supplier_id') && !empty($request->supplier_id)) $query->where('supplier_id', $request->supplier_id);
-        if ($request->has('stock_status') && !empty($request->stock_status)) $query->where('variants.stock_status', $request->stock_status);
-        if ($request->has('is_featured')) $query->where('variants.is_featured', $request->boolean('is_featured'));
-        if ($request->has('is_active')) $query->where('variants.is_active', $request->boolean('is_active'));
+
+        // Filter by category
+        if ($request->has('category_id') && !empty($request->category_id)) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // Filter by supplier
+        if ($request->has('supplier_id') && !empty($request->supplier_id)) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+
+        // Fix: Stock status filter - assuming variants is JSON or relation
+        if ($request->has('stock_status') && !empty($request->stock_status)) {
+            $query->whereJsonContains('variants->stock_status', $request->stock_status);
+            // OR if variants is a relation:
+            // $query->whereHas('variants', function ($variantQuery) use ($request) {
+            //     $variantQuery->where('stock_status', $request->stock_status);
+            // });
+        }
+
+        // Fix: Featured filter
+        if ($request->has('is_featured')) {
+            $query->whereJsonContains('variants->is_featured', $request->boolean('is_featured'));
+            // OR if variants is a relation:
+            // $query->whereHas('variants', function ($variantQuery) use ($request) {
+            //     $variantQuery->where('is_featured', $request->boolean('is_featured'));
+            // });
+        }
+
+        // Fix: Active filter
+        if ($request->has('is_active')) {
+            $query->whereJsonContains('variants->is_active', $request->boolean('is_active'));
+            // OR if variants is a relation:
+            // $query->whereHas('variants', function ($variantQuery) use ($request) {
+            //     $variantQuery->where('is_active', $request->boolean('is_active'));
+            // });
+        }
+
+        // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
-        if (in_array($sortBy, ['name', 'created_at', 'variants.price', 'variants.original_price'])) {
+
+        // Fix: Handle JSON field sorting for variants
+        $allowedSortFields = ['name', 'created_at'];
+        if (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortOrder);
+        } elseif ($sortBy === 'price') {
+            $query->orderBy('variants->price', $sortOrder);
+        } elseif ($sortBy === 'original_price') {
+            $query->orderBy('variants->original_price', $sortOrder);
         }
-        $perPage = $request->get('per_page', 20);
+
+        $perPage = min($request->get('per_page', 20), 100); // Limit max per page
         $medicines = $query->paginate($perPage);
-        if ($medicines->isEmpty()) return $this->fail(null, 'Không tìm thấy thuốc', 404);
+
+        if ($medicines->isEmpty()) {
+            return $this->fail(null, 'Không tìm thấy thuốc', 404);
+        }
+
         return $this->json($medicines, 'Danh sách thuốc', 200);
     }
 
@@ -263,6 +326,7 @@ class MedicineController extends Controller
                 'precautions' => $validated['usageguide']['precautions'],
             ],
         ]);
+        if ($data && $data->_id) $this->embeddingService->embedMedicineAsync($data->_id);
         return $this->json($data, 'Đã thêm thuốc thành công', 201);
     }
 
@@ -430,6 +494,7 @@ class MedicineController extends Controller
             if (isset($newUsageGuide['precautions'])) $mergedUsageGuide['precautions'] = $newUsageGuide['precautions'];
             $updateData['usageguide'] = $mergedUsageGuide;
         }
+        if ($updateData && isset($updateData['_id'])) $this->embeddingService->embedMedicineAsync($updateData['_id']);
         $medicine->update($updateData);
         $medicine->refresh();
         return $this->json($medicine, 'Đã cập nhật thuốc thành công', 200);
@@ -475,6 +540,7 @@ class MedicineController extends Controller
     {
         $medicine = Medicine::find($id);
         if (!$medicine) return $this->fail(null, 'Không tìm thấy thuốc', 404);
+        $this->embeddingService->deleteMedicineEmbeddingAsync($id);
         $medicine->delete();
         return $this->json(null, 'Đã xóa thuốc thành công', 200);
     }
