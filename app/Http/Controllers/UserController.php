@@ -304,8 +304,8 @@ class UserController extends Controller
         'regex:/[@$!%*#?&]/', // Ít nhất một ký tự đặc biệt
       ],
       'phone' => 'nullable|string|max:15|unique:users,phone,' . $id,
-      'role' => 'nullable|string|in:customer,pharmacist,admin',
-      'status' => 'nullable|string|in:active,suspended,pending',
+      'role' => ['nullable', new Enum(UserRole::class)],
+      'status' => ['nullable', new Enum(UserStatus::class)],
     ]);
     if ($validator->fails()) return $this->json($validator->errors(), "Dữ liệu không hợp lệ", 422);
     $updateData = array_filter($request->only([
