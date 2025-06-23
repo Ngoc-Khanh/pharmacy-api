@@ -7,7 +7,7 @@ use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
@@ -201,8 +201,8 @@ class UserController extends Controller
         'regex:/[@$!%*#?&]/', // Ít nhất một ký tự đặc biệt
       ],
       'phone' => 'nullable|string|max:15|unique:users',
-      'role' => ['required', 'string', Rule::in(UserRole::cases())],
-      'status' => ['required', 'string', Rule::in(UserStatus::cases())],
+      'role' => ['required', new Enum(UserRole::class)],
+      'status' => ['required', new Enum(UserStatus::class)],
     ]);
     if ($validator->fails()) return $this->json($validator->errors(), "Dữ liệu không hợp lệ", 422);
     $newUser = User::create([
