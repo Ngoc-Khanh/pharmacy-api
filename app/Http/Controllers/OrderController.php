@@ -247,7 +247,7 @@ class OrderController extends Controller
             $currentPrice = $medicine->variants['price'];
             $quantity = (int)$item['quantity'];
             $orderItem = $item;
-            $orderItem['price'] = $currentPrice;
+            $orderItem['price'] = $currentPrice; 
             $orderItem['item_total'] = $currentPrice * $quantity;
             $orderItems[] = $orderItem;
             $subTotal += $currentPrice * $quantity;

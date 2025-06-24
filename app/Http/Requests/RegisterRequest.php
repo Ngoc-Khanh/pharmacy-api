@@ -69,12 +69,13 @@ class RegisterRequest extends FormRequest
             'password.required' => 'Mật khẩu là thông tin bắt buộc',
             'password.string' => 'Mật khẩu chỉ được chứa các ký tự hợp lệ',
             'password.min' => 'Mật khẩu quá yếu, vui lòng nhập ít nhất 8 ký tự',
-            'password.confirmed' => 'Mật khẩu xác nhận không khớp, vui lòng nhập lại',
+            'password.confirmed' => 'Vui lòng nhập lại mật khẩu để xác nhận',
             'password.regex' => 'Mật khẩu phải bao gồm: chữ thường, chữ hoa, số và ký tự đặc biệt (@$!%*#?&) để đảm bảo an toàn',
             'phone.required' => 'Số điện thoại là thông tin bắt buộc',
             'phone.string' => 'Số điện thoại chỉ được chứa các ký tự hợp lệ',
             'phone.max' => 'Số điện thoại quá dài, vui lòng nhập tối đa 15 ký tự',
             'phone.unique' => 'Số điện thoại này đã được đăng ký, vui lòng sử dụng số khác',
+            'phone.regex' => 'Số điện thoại không đúng định dạng, chỉ được chứa số và dấu +'
         ];
     }
 
