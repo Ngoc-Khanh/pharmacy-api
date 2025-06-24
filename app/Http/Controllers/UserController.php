@@ -511,25 +511,22 @@ class UserController extends Controller
    *     operationId="bulkDeleteUsers",
    *     tags={"Users"},
    *     summary="Xóa nhiều người dùng",
-   *     description="Xóa nhiều người dùng cùng lúc dựa trên danh sách ID",
+   *     description="Xóa nhiều người dùng cùng lúc dựa trên danh sách ID được truyền qua query string",
    *     security={{"bearerAuth":{}}},
-   *     @OA\RequestBody(
+   *     @OA\Parameter(
+   *         name="ids",
+   *         in="query",
+   *         description="Danh sách ID người dùng cần xóa, phân cách bằng dấu phẩy",
    *         required=true,
-   *         @OA\JsonContent(
-   *             required={"ids"},
-   *             @OA\Property(
-   *                 property="ids",
-   *                 type="array",
-   *                 description="Danh sách ID người dùng cần xóa",
-   *                 @OA\Items(type="string", example="65f1b3fc5bce7125f4001ec2")
-   *             )
-   *         )
+   *         @OA\Schema(type="string", example="65f1b3fc5bce7125f4001ec2,65f1b3fc5bce7125f4001ec3,65f1b3fc5bce7125f4001ec4")
    *     ),
    *     @OA\Response(
    *         response=200,
    *         description="Xóa thành công",
    *         @OA\JsonContent(
-   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="data", type="object",
+   *                 @OA\Property(property="deletedCount", type="integer", example=3, description="Số lượng người dùng đã xóa")
+   *             ),
    *             @OA\Property(property="message", type="string", example="Xóa người dùng thành công"),
    *             @OA\Property(property="status", type="integer", example=200),
    *             @OA\Property(property="locale", type="string", example="vi_VN"),
@@ -574,9 +571,13 @@ class UserController extends Controller
   #[Delete(uri: "/bulk-delete", name: "admin.users.bulk-delete", middleware: "role:admin")]
   public function bulkDeleteUsers(Request $request)
   {
-    $ids = $request->input('ids');
+    $idsString = $request->query('ids');
+    if (empty($idsString)) return $this->json([], "Danh sách người dùng không tồn tại", 404);
+    $ids = explode(',', $idsString);
+    $ids = array_filter($ids); // Loại bỏ các phần tử rỗng
     if (empty($ids)) return $this->json([], "Danh sách người dùng không tồn tại", 404);
+    $deletedCount = User::whereIn('id', $ids)->count();
     User::whereIn('id', $ids)->delete();
-    return $this->json(null, "Xóa người dùng thành công");
+    return $this->json(['deletedCount' => $deletedCount], "Xóa người dùng thành công");
   }
 }
