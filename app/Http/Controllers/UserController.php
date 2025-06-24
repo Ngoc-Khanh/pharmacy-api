@@ -25,7 +25,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 #[Middleware(middleware: "jwt.auth")]
 class UserController extends Controller
 {
-  #[Get(uri: "/", name: "admin.users.index", middleware: ["role:admin,pharmacist"])]
+  #[Get(uri: "/", name: "admin.users.index", middleware: ["role:admin"])]
   /**
    * @OA\Get(
    *     path="/v1/admin/users",
@@ -132,6 +132,79 @@ class UserController extends Controller
     $users = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')
       ->paginate($perPage);
     return $this->json($users, "Lấy danh sách người dùng thành công");
+  }
+
+  #[Get(uri: "/statistics", name: "admin.users.statistics", middleware: ["role:admin"])]
+  /**
+   * @OA\Get(
+   *     path="/v1/admin/users/statistics",
+   *     operationId="getUserStatistics",
+   *     tags={"Users"},
+   *     summary="Lấy thống kê người dùng",
+   *     description="Trả về thống kê tổng quan về người dùng trong hệ thống",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Response(
+   *         response=200,
+   *         description="Thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="object",
+   *                 @OA\Property(property="total_users", type="integer", example=150, description="Tổng số người dùng"),
+   *                 @OA\Property(property="admin_accounts", type="integer", example=5, description="Số tài khoản quản trị viên"),
+   *                 @OA\Property(property="pharmacist_accounts", type="integer", example=20, description="Số tài khoản dược sĩ"),
+   *                 @OA\Property(property="customer_accounts", type="integer", example=125, description="Số tài khoản khách hàng"),
+   *                 @OA\Property(property="active_users", type="integer", example=140, description="Số người dùng đang hoạt động"),
+   *                 @OA\Property(property="pending_users", type="integer", example=8, description="Số người dùng đang chờ xác thực"),
+   *                 @OA\Property(property="suspended_users", type="integer", example=2, description="Số người dùng bị tạm khóa")
+   *             ),
+   *             @OA\Property(property="message", type="string", example="Lấy thống kê người dùng thành công"),
+   *             @OA\Property(property="status", type="integer", example=200),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object", nullable=true)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=401,
+   *         description="Không được phép truy cập",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Không được phép truy cập"),
+   *             @OA\Property(property="status", type="integer", example=401),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=403,
+   *         description="Không đủ quyền truy cập",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập tính năng này"),
+   *             @OA\Property(property="status", type="integer", example=403),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     )
+   * )
+   */
+  public function userStats()
+  {
+    $totalUsers = User::count();
+    $adminAccounts = User::where('role', UserRole::ADMIN)->count();
+    $pharmacistAccounts = User::where('role', UserRole::PHARMACIST)->count();
+    $customerAccounts = User::where('role', UserRole::CUSTOMER)->count();
+    $activeUsers = User::where('status', UserStatus::ACTIVE)->count();
+    $pendingUsers = User::where('status', UserStatus::PENDING)->count();
+    $suspendedUsers = User::where('status', UserStatus::SUSPENDED)->count();
+    $stats = [
+      'total_users' => $totalUsers,
+      'admin_accounts' => $adminAccounts,
+      'pharmacist_accounts' => $pharmacistAccounts,
+      'customer_accounts' => $customerAccounts,
+      'active_users' => $activeUsers,
+      'pending_users' => $pendingUsers,
+      'suspended_users' => $suspendedUsers,
+    ];
+    return $this->json($stats, "Lấy thống kê người dùng thành công");
   }
 
   /**
