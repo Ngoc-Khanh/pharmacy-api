@@ -7212,6 +7212,125 @@
                 ]
             }
         },
+        "/v1/admin/statistics/daily-revenue-calendar": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Lấy thống kê doanh thu và đơn hàng theo ngày",
+                "description": "Trả về doanh thu và số lượng đơn hàng của các ngày trong tháng để hiển thị biểu đồ calendar",
+                "operationId": "getDailyRevenueCalendar",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "description": "Tháng cần thống kê (1-12, mặc định là tháng hiện tại)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 6
+                        }
+                    },
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "description": "Năm cần thống kê (mặc định là năm hiện tại)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2025
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thống kê doanh thu theo ngày thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thống kê doanh thu theo ngày thành công"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "date": {
+                                                        "type": "string",
+                                                        "example": "01/06"
+                                                    },
+                                                    "revenue": {
+                                                        "type": "number",
+                                                        "example": 45000000
+                                                    },
+                                                    "orders": {
+                                                        "type": "integer",
+                                                        "example": 15
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu đầu vào không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tháng không hợp lệ"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/medicines": {
             "get": {
                 "tags": [

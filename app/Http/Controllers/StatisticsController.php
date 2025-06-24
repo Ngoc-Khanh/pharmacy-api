@@ -335,4 +335,102 @@ class StatisticsController extends Controller
         }
         return $this->json($result, 'Lấy thống kê trạng thái đơn hàng thành công', 200);
     }
+
+    #[Get('daily-revenue-calendar', "admin.statistics.daily-revenue-calendar")]
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/statistics/daily-revenue-calendar",
+     *     summary="Lấy thống kê doanh thu và đơn hàng theo ngày",
+     *     description="Trả về doanh thu và số lượng đơn hàng của các ngày trong tháng để hiển thị biểu đồ calendar",
+     *     operationId="getDailyRevenueCalendar",
+     *     tags={"Dashboard"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="month",
+     *         in="query",
+     *         description="Tháng cần thống kê (1-12, mặc định là tháng hiện tại)",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=6)
+     *     ),
+     *     @OA\Parameter(
+     *         name="year",
+     *         in="query",
+     *         description="Năm cần thống kê (mặc định là năm hiện tại)",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=2025)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy thống kê doanh thu theo ngày thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Lấy thống kê doanh thu theo ngày thành công"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="date", type="string", example="01/06"),
+     *                     @OA\Property(property="revenue", type="number", example=45000000),
+     *                     @OA\Property(property="orders", type="integer", example=15)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Dữ liệu đầu vào không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Tháng không hợp lệ")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Chưa xác thực",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     )
+     * )
+     */
+    public function dailyRevenueCalendar(Request $request)
+    {
+        $month = $request->get('m', Carbon::now()->month);
+        $year = $request->get('y', Carbon::now()->year);
+        if ($month < 1 || $month > 12) return $this->json([], "Tháng không hợp lệ", 400);
+        if ($year < 2000 || $year > 2100) return $this->json([], "Năm không hợp lệ", 400);
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+        $dailyData = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $dailyData[$day] = [
+                'revenue' => 0,
+                'orders' => 0,
+            ];
+        };
+        $invoices = Invoice::where('status', InvoiceStatus::PAID)
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->get(['total_price', 'created_at']);
+        $orders = Order::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->get(['created_at']);
+        foreach ($invoices as $invoice) {
+            $day = (int) $invoice->created_at->format('j');
+            $dailyData[$day]['revenue'] += (float) $invoice->total_price;
+        }
+        foreach ($orders as $order) {
+            $day = (int) $order->created_at->format('j');
+            $dailyData[$day]['orders']++;
+        }
+        $result = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $result[] = [
+                'date' => sprintf('%02d/%02d', $day, $month),
+                'revenue' => $dailyData[$day]['revenue'],
+                'orders' => $dailyData[$day]['orders']
+            ];
+        }
+        return $this->json($result, "Lấy thống kê doanh thu hàng ngày thành công", 200);
+    }
 }
