@@ -504,4 +504,79 @@ class UserController extends Controller
     $user->delete();
     return $this->json(null, "Xóa người dùng thành công");
   }
+
+  /**
+   * @OA\Delete(
+   *     path="/v1/admin/users/bulk-delete",
+   *     operationId="bulkDeleteUsers",
+   *     tags={"Users"},
+   *     summary="Xóa nhiều người dùng",
+   *     description="Xóa nhiều người dùng cùng lúc dựa trên danh sách ID",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\RequestBody(
+   *         required=true,
+   *         @OA\JsonContent(
+   *             required={"ids"},
+   *             @OA\Property(
+   *                 property="ids",
+   *                 type="array",
+   *                 description="Danh sách ID người dùng cần xóa",
+   *                 @OA\Items(type="string", example="65f1b3fc5bce7125f4001ec2")
+   *             )
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Xóa thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Xóa người dùng thành công"),
+   *             @OA\Property(property="status", type="integer", example=200),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object", nullable=true)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Danh sách không tồn tại",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="array", @OA\Items()),
+   *             @OA\Property(property="message", type="string", example="Danh sách người dùng không tồn tại"),
+   *             @OA\Property(property="status", type="integer", example=404),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object", nullable=true)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=401,
+   *         description="Không được phép truy cập",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Không được phép truy cập"),
+   *             @OA\Property(property="status", type="integer", example=401),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=403,
+   *         description="Không đủ quyền truy cập",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập tính năng này"),
+   *             @OA\Property(property="status", type="integer", example=403),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     )
+   * )
+   */
+  #[Delete(uri: "/bulk-delete", name: "admin.users.bulk-delete", middleware: "role:admin")]
+  public function bulkDeleteUsers(Request $request)
+  {
+    $ids = $request->input('ids');
+    if (empty($ids)) return $this->json([], "Danh sách người dùng không tồn tại", 404);
+    User::whereIn('id', $ids)->delete();
+    return $this->json(null, "Xóa người dùng thành công");
+  }
 }
