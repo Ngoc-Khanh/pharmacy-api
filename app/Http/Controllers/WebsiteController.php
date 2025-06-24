@@ -22,14 +22,6 @@ class WebsiteController extends Controller
             'phien_ban_laravel' => app()->version(),
             'mui_gio' => config('app.timezone'),
             'tai_lieu' => url('/api/docs'),
-            'cac_endpoint' => [
-                'xac_thuc' => '/api/auth',
-                'san_pham' => '/api/products',
-                'danh_muc' => '/api/categories',
-                'don_hang' => '/api/orders',
-                'gio_hang' => '/api/cart',
-                'tu_van' => '/api/consultation'
-            ],
             'thoi_gian' => now()->toISOString()
         ];
 
