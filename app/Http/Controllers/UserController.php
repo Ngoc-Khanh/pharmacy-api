@@ -504,4 +504,13 @@ class UserController extends Controller
     $user->delete();
     return $this->json(null, "Xóa người dùng thành công");
   }
+
+  #[Delete(uri: "/bulk-delete", name: "admin.users.bulk-delete", middleware: "role:admin")]
+  public function bulkDeleteUsers(Request $request)
+  {
+    $ids = $request->input('ids');
+    if (empty($ids)) return $this->json([], "Danh sách người dùng không tồn tại", 404);
+    User::whereIn('id', $ids)->delete();
+    return $this->json(null, "Xóa người dùng thành công");
+  }
 }
