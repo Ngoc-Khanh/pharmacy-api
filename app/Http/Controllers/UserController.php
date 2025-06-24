@@ -32,8 +32,36 @@ class UserController extends Controller
    *     operationId="getUserList",
    *     tags={"Users"},
    *     summary="Lấy danh sách người dùng",
-   *     description="Trả về danh sách tất cả người dùng trong hệ thống",
+   *     description="Trả về danh sách tất cả người dùng trong hệ thống với khả năng tìm kiếm và phân trang",
    *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(
+   *         name="s",
+   *         in="query",
+   *         description="Từ khóa tìm kiếm (tìm theo username, email, firstname, lastname, phone)",
+   *         required=false,
+   *         @OA\Schema(type="string", example="nguyen")
+   *     ),
+   *     @OA\Parameter(
+   *         name="per_page",
+   *         in="query",
+   *         description="Số lượng bản ghi trên mỗi trang",
+   *         required=false,
+   *         @OA\Schema(type="integer", example=10, default=10)
+   *     ),
+   *     @OA\Parameter(
+   *         name="sort_by",
+   *         in="query",
+   *         description="Trường dùng để sắp xếp",
+   *         required=false,
+   *         @OA\Schema(type="string", enum={"username", "email", "firstname", "lastname", "role", "status", "created_at", "updated_at"}, default="created_at")
+   *     ),
+   *     @OA\Parameter(
+   *         name="sort_order",
+   *         in="query",
+   *         description="Thứ tự sắp xếp",
+   *         required=false,
+   *         @OA\Schema(type="string", enum={"asc", "desc"}, default="desc")
+   *     ),
    *     @OA\Response(
    *         response=200,
    *         description="Thành công",
@@ -85,14 +113,23 @@ class UserController extends Controller
    */
   public function userList(Request $request)
   {
-    $perPage = $request->input('per_page', 15);
+    $perPage = $request->input('per_page', 10);
     $sortField = $request->input('sort_by', 'created_at');
     $sortOrder = $request->input('sort_order', 'desc');
+    $search = $request->input('s', '');
     $allowedSortFields = ['username', 'email', 'firstname', 'lastname', 'role', 'status', 'created_at', 'updated_at'];
-    if (!in_array($sortField, $allowedSortFields)) {
-      $sortField = 'created_at';
+    if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
+    $query = User::query();
+    if (!empty($search)) {
+      $query->where(function ($q) use ($search) {
+        $q->where('username', 'like', "%{$search}%")
+          ->orWhere('email', 'like', "%{$search}%")
+          ->orWhere('firstname', 'like', "%{$search}%")
+          ->orWhere('lastname', 'like', "%{$search}%")
+          ->orWhere('phone', 'like', "%{$search}%");
+      });
     }
-    $users = User::orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')
+    $users = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')
       ->paginate($perPage);
     return $this->json($users, "Lấy danh sách người dùng thành công");
   }
