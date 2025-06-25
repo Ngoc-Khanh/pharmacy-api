@@ -207,6 +207,86 @@ class UserController extends Controller
     return $this->json($stats, "Lấy thống kê người dùng thành công");
   }
 
+  #[Get(uri: "/{id}/detail", name: "admin.users.detail", middleware: ["role:admin"])]
+  /**
+   * @OA\Get(
+   *     path="/v1/admin/users/{id}/detail",
+   *     operationId="getUserDetail",
+   *     tags={"Users"},
+   *     summary="Lấy chi tiết người dùng",
+   *     description="Lấy thông tin chi tiết của một người dùng theo ID",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(
+   *         name="id",
+   *         in="path",
+   *         required=true,
+   *         description="ID của người dùng",
+   *         @OA\Schema(type="string", example="65f1b3fc5bce7125f4001ec2")
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Lấy thông tin thành công",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="object",
+   *                 @OA\Property(property="id", type="string", example="65f1b3fc5bce7125f4001ec2"),
+   *                 @OA\Property(property="username", type="string", example="user1"),
+   *                 @OA\Property(property="email", type="string", example="user1@example.com"),
+   *                 @OA\Property(property="firstname", type="string", example="Nguyen"),
+   *                 @OA\Property(property="lastname", type="string", example="Van A"),
+   *                 @OA\Property(property="phone", type="string", example="0901234567"),
+   *                 @OA\Property(property="profile_image", type="string", example="1.jpg"),
+   *                 @OA\Property(property="role", type="string", example="customer"),
+   *                 @OA\Property(property="status", type="string", example="active"),
+   *                 @OA\Property(property="created_at", type="string", format="date-time"),
+   *                 @OA\Property(property="updated_at", type="string", format="date-time")
+   *             ),
+   *             @OA\Property(property="message", type="string", example="Lấy thông tin người dùng thành công"),
+   *             @OA\Property(property="status", type="integer", example=200),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object", nullable=true)
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=401,
+   *         description="Không được phép truy cập",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Không được phép truy cập"),
+   *             @OA\Property(property="status", type="integer", example=401),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=403,
+   *         description="Không đủ quyền truy cập",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập tính năng này"),
+   *             @OA\Property(property="status", type="integer", example=403),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Không tìm thấy người dùng",
+   *         @OA\JsonContent(
+   *             @OA\Property(property="data", type="null"),
+   *             @OA\Property(property="message", type="string", example="Không tìm thấy người dùng"),
+   *             @OA\Property(property="status", type="integer", example=404),
+   *             @OA\Property(property="locale", type="string", example="vi_VN"),
+   *             @OA\Property(property="error", type="object")
+   *         )
+   *     )
+   * )
+   */
+  public function userDetail($id)
+  {
+    $user = User::find($id);
+    return $this->json($user, "Lấy thông tin người dùng thành công");
+  }
+
   /**
    * @OA\Post(
    *     path="/v1/admin/users/add",
