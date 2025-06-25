@@ -551,7 +551,7 @@ class InvoiceController extends Controller
         if ($user) {
             $invoice->user = [
                 'id' => $user->_id,
-                'fullName' => $user->firstname . ' ' . $user->lastname,
+                'username' => $user->username,
                 'email' => $user->email,
                 'phone' => $user->phone,
                 'profile_image' => $user->profile_image,
