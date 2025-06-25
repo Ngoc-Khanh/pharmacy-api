@@ -350,44 +350,115 @@ class InvoiceController extends Controller
      *     operationId="adminInvoicesList",
      *     tags={"Invoices"},
      *     summary="Lấy danh sách tất cả hóa đơn",
-     *     description="Trả về danh sách tất cả hóa đơn trong hệ thống (chỉ dành cho admin)",
+     *     description="Trả về danh sách tất cả hóa đơn trong hệ thống với khả năng tìm kiếm và phân trang (chỉ dành cho admin)",
      *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="s",
+     *         in="query",
+     *         description="Từ khóa tìm kiếm (tìm theo invoice_number, status)",
+     *         required=false,
+     *         @OA\Schema(type="string", example="INV-20240310")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Số lượng bản ghi trên mỗi trang",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=10, default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Trường để sắp xếp",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"invoice_number", "status", "created_at", "updated_at"}, example="created_at")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         description="Thứ tự sắp xếp",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"asc", "desc"}, example="desc")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Lấy danh sách hóa đơn thành công",
      *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", 
-     *                 @OA\Items(
-     *                     @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                     @OA\Property(property="order_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                     @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                     @OA\Property(property="invoice_number", type="string", example="INV-20240310-001"),
-     *                     @OA\Property(property="items", type="array", @OA\Items(type="object")),
-     *                     @OA\Property(property="total_price", type="number", example=150000),
-     *                     @OA\Property(property="payment_method", type="string", example="bank_transfer"),
-     *                     @OA\Property(property="issued_at", type="string", format="date-time"),
-     *                     @OA\Property(property="status", type="string", example="pending"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time")
-     *                 )
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="data", type="array", 
+     *                     @OA\Items(
+     *                         @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="order_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                         @OA\Property(property="invoice_number", type="string", example="INV-20240310-001"),
+     *                         @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                         @OA\Property(property="total_price", type="number", example=150000),
+     *                         @OA\Property(property="payment_method", type="string", example="bank_transfer"),
+     *                         @OA\Property(property="status", type="string", example="PENDING", description="PENDING, PAID, CANCELLED, REFUNDED"),
+     *                         @OA\Property(property="issued_at", type="string", format="date-time"),
+     *                         @OA\Property(property="created_at", type="string", format="date-time"),
+     *                         @OA\Property(property="updated_at", type="string", format="date-time")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="first_page_url", type="string", example="http://localhost/v1/admin/invoices/list?page=1"),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=10),
+     *                 @OA\Property(property="last_page_url", type="string", example="http://localhost/v1/admin/invoices/list?page=10"),
+     *                 @OA\Property(property="links", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="next_page_url", type="string", example="http://localhost/v1/admin/invoices/list?page=2"),
+     *                 @OA\Property(property="path", type="string", example="http://localhost/v1/admin/invoices/list"),
+     *                 @OA\Property(property="per_page", type="integer", example=10),
+     *                 @OA\Property(property="prev_page_url", type="string", nullable=true),
+     *                 @OA\Property(property="to", type="integer", example=10),
+     *                 @OA\Property(property="total", type="integer", example=100)
      *             ),
      *             @OA\Property(property="message", type="string", example="Lấy danh sách hóa đơn thành công"),
-     *             @OA\Property(property="status", type="integer", example=200)
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object", nullable=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Không có quyền truy cập",
+     *         description="Không được phép truy cập",
      *         @OA\JsonContent(
      *             @OA\Property(property="data", type="null"),
-     *             @OA\Property(property="message", type="string", example="Unauthorized"),
-     *             @OA\Property(property="status", type="integer", example=401)
+     *             @OA\Property(property="message", type="string", example="Không được phép truy cập"),
+     *             @OA\Property(property="status", type="integer", example=401),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không đủ quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập tính năng này"),
+     *             @OA\Property(property="status", type="integer", example=403),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
      *         )
      *     )
      * )
      */
-    public function invoiceAdminList()
+    public function invoiceAdminList(Request $request)
     {
-        $invoices = Invoice::all();
+        $perPage = $request->input('per_page', 10);
+        $sortField = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $search = $request->input('s', '');
+        $allowedSortFields = ['invoice_number', 'status', 'created_at', 'updated_at'];
+        if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
+        $query = Invoice::query();
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+        $invoices = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
         return $this->json($invoices, 'Lấy danh sách hóa đơn thành công', 200);
     }
 
