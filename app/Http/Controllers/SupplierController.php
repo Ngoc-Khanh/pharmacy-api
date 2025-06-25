@@ -78,7 +78,22 @@ class SupplierController extends Controller
      */
     public function listSuppliers(Request $request)
     {
-        $suppliers = Supplier::all();
+        $perPage = $request->input('per_page', 10);
+        $sortField = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $search = $request->input('s', '');
+        $allowedSortFields = ['name', 'address', 'contact_phone', 'contact_email', 'created_at', 'updated_at'];
+        if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
+        $query = Supplier::query();
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%")
+                    ->orWhere('contact_phone', 'like', "%{$search}%")
+                    ->orWhere('contact_email', 'like', "%{$search}%");
+            });
+        }
+        $suppliers = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
         return $this->json($suppliers, 'Danh sách nhà cung cấp');
     }
 
