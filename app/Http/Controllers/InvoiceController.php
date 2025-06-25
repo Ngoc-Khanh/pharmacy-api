@@ -542,11 +542,21 @@ class InvoiceController extends Controller
         return $this->json($invoice, 'Thêm hóa đơn thành công', 200);
     }
 
-    #[Get(uri: "/admin/invoices/{id}/details", name: "admin.invoices.details", middleware: "role:admin")]
+    #[Get(uri: "/admin/invoices/{id}/detail", name: "admin.invoices.details", middleware: "role:admin")]
     public function getAdminInvoiceDetails($id)
     {
         $invoice = Invoice::where('_id', $id)->first();
         if (!$invoice) return $this->fail(null, 'Hóa đơn không tồn tại', 400);
+        $user = \App\Models\User::find($invoice->user_id);
+        if ($user) {
+            $invoice->user = [
+                'id' => $user->_id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'profile_image' => $user->profile_image,
+            ];
+        }
         $order = Order::where('_id', $invoice->order_id)->first();
         if ($order) {
             $invoice->order = [
