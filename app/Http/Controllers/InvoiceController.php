@@ -479,7 +479,7 @@ class InvoiceController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"user_id", "items", "payment_method", "shipping_address"},
+     *             required={"user_id", "items", "payment_method"},
      *             @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
      *             @OA\Property(property="invoice_number", type="string", example="INV-20240310-001", description="Tùy chọn, sẽ tự động tạo nếu không cung cấp"),
      *             @OA\Property(property="items", type="array", 
@@ -490,10 +490,12 @@ class InvoiceController extends Controller
      *                 )
      *             ),
      *             @OA\Property(property="payment_method", type="string", example="COD", enum={"COD", "CREDIT-CARD", "BANK-TRANSFER"}),
-     *             @OA\Property(property="shipping_address", type="object",
+     *             @OA\Property(property="shipping_address_id", type="string", example="addr_001", description="ID của địa chỉ đã lưu (ưu tiên sử dụng nếu có)"),
+     *             @OA\Property(property="shipping_address", type="object", description="Địa chỉ mới (sử dụng khi không có shipping_address_id)",
      *                 @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
      *                 @OA\Property(property="phone", type="string", example="0901234567"),
      *                 @OA\Property(property="address_line1", type="string", example="123 Đường Nguyễn Huệ"),
+     *                 @OA\Property(property="address_line2", type="string", example="Tầng 2", description="Tùy chọn"),
      *                 @OA\Property(property="city", type="string", example="Quận 1"),
      *                 @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
      *                 @OA\Property(property="country", type="string", example="Việt Nam")
@@ -578,13 +580,15 @@ class InvoiceController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
             'payment_method' => 'required|string|in:COD,CREDIT-CARD,BANK-TRANSFER',
-            'shipping_address' => 'required|array',
-            'shipping_address.name' => 'required|string',
-            'shipping_address.phone' => 'required|string',
-            'shipping_address.address_line1' => 'required|string',
-            'shipping_address.city' => 'required|string',
-            'shipping_address.state' => 'required|string',
-            'shipping_address.country' => 'required|string',
+            'shipping_address_id' => 'nullable|string',
+            'shipping_address' => 'nullable|array',
+            'shipping_address.name' => 'required_without:shipping_address_id|string',
+            'shipping_address.phone' => 'required_without:shipping_address_id|string',
+            'shipping_address.address_line1' => 'required_without:shipping_address_id|string',
+            'shipping_address.address_line2' => 'nullable|string',
+            'shipping_address.city' => 'required_without:shipping_address_id|string',
+            'shipping_address.state' => 'required_without:shipping_address_id|string',
+            'shipping_address.country' => 'required_without:shipping_address_id|string',
             'issued_at' => 'nullable|date',
             'status' => 'nullable|string',
         ]);
@@ -592,6 +596,24 @@ class InvoiceController extends Controller
         // Kiểm tra user tồn tại
         $user = User::find($data['user_id']);
         if (!$user) return $this->fail(null, 'Người dùng không tồn tại', 400);
+        // Xử lý địa chỉ giao hàng (có thể chọn từ địa chỉ đã lưu hoặc nhập mới)
+        $shippingAddress = null;
+        if (isset($data['shipping_address_id']) && $data['shipping_address_id']) {
+            // Tìm địa chỉ từ danh sách địa chỉ đã lưu của user
+            foreach ($user->addresses as $address) {
+                if ($address['id'] == $data['shipping_address_id']) {
+                    $shippingAddress = $address;
+                    break;
+                }
+            }
+            if (!$shippingAddress) return $this->fail(null, 'Địa chỉ không tồn tại', 400);
+        } else {
+            // Sử dụng địa chỉ mới được cung cấp
+            if (!isset($data['shipping_address']) || empty($data['shipping_address'])) {
+                return $this->fail(null, 'Vui lòng cung cấp shipping_address_id hoặc shipping_address', 400);
+            }
+            $shippingAddress = $data['shipping_address'];
+        }
         $medicineIds = array_column($data['items'], 'medicine_id');
         $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
         foreach ($data['items'] as $item) {
@@ -640,11 +662,10 @@ class InvoiceController extends Controller
             'shipping_fee' => $shippingFee,
             'discount' => $discount,
             'total_price' => $totalPrice,
-            'shipping_address' => $data['shipping_address'],
+            'shipping_address' => $shippingAddress,
             'payment_method' => $data['payment_method'],
             'created_at' => now(),
         ]);
-
         // Tạo hóa đơn với thông tin đơn hàng
         $invoiceData = [
             'order_id' => $order->_id,
