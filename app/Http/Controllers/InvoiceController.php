@@ -8,11 +8,14 @@ use App\Models\Medicine;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Enum;
 use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Middleware;
+use Spatie\RouteAttributes\Attributes\Patch;
 
 #[Prefix(prefix: "v1")]
 #[Middleware(middleware: "jwt.auth")]
@@ -573,6 +576,101 @@ class InvoiceController extends Controller
             });
         }
         return $this->json($invoice, 'Lấy chi tiết hóa đơn thành công', 200);
+    }
+
+    #[Patch(uri: "/admin/invoices/{id}/change-status", name: "admin.invoices.change-status", middleware: "role:admin")]
+    /**
+     * @OA\Patch(
+     *     path="/v1/admin/invoices/{id}/change-status",
+     *     operationId="adminChangeInvoiceStatus",
+     *     tags={"Invoices"},
+     *     summary="Thay đổi trạng thái hóa đơn",
+     *     description="Thay đổi trạng thái của hóa đơn (chỉ dành cho admin)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của hóa đơn cần thay đổi trạng thái",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"status"},
+     *             @OA\Property(
+     *                 property="status", 
+     *                 type="string", 
+     *                 enum={"PENDING", "PAID", "CANCELLED", "REFUNDED"},
+     *                 example="PAID",
+     *                 description="Trạng thái mới của hóa đơn"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thay đổi trạng thái hóa đơn thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="invoice_number", type="string", example="INV-20240310-001"),
+     *                 @OA\Property(property="status", type="string", example="PAID"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Thay đổi trạng thái hóa đơn thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Hóa đơn không tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Hóa đơn không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=400)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="The status field is required."),
+     *             @OA\Property(property="status", type="integer", example=422),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized"),
+     *             @OA\Property(property="status", type="integer", example=401)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không đủ quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập vào tài nguyên này"),
+     *             @OA\Property(property="status", type="integer", example=403)
+     *         )
+     *     )
+     * )
+     */
+    public function changeInvoiceStatus(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => ['required', new Enum(InvoiceStatus::class)]
+        ]);
+        if ($validator->fails()) return $this->fail(null, $validator->errors()->first(), 422);
+        $invoice = Invoice::where("_id", $id)->first();
+        if (!$invoice) return $this->fail(null, 'Hóa đơn không tồn tại', 400);
+        $invoice->status = $request->status;
+        $invoice->save();
+        return $this->json($invoice, 'Thay đổi trạng thái hóa đơn thành công', 200);
     }
 
     #[Delete(uri: "/admin/invoices/{id}/delete", name: "admin.invoices.delete", middleware: "role:admin")]
