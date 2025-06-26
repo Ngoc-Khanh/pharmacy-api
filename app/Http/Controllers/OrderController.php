@@ -469,6 +469,54 @@ class OrderController extends Controller
         return $this->json($orders, 'Lấy danh sách đơn hàng thành công', 200);
     }
 
+    #[Get(uri: "/admin/orders/statistic", name: "admin.orders.statistic", middleware: "role:admin")]
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/orders/statistic",
+     *     operationId="getOrderStatisticAdmin",
+     *     tags={"Orders"},
+     *     summary="Lấy thống kê đơn hàng (Admin)",
+     *     description="Trả về thống kê tổng quan về đơn hàng bao gồm tổng số đơn hàng và số đơn hàng trong ngày",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="total_orders", type="integer", example=150, description="Tổng số đơn hàng"),
+     *                 @OA\Property(property="total_orders_today", type="integer", example=5, description="Số đơn hàng trong ngày hôm nay")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy thống kê đơn hàng thành công"),
+     *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không đủ quyền admin",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Forbidden")
+     *         )
+     *     )
+     * )
+     */
+    public function getOrderStatisticAdmin()
+    {
+        $totalOrders = Order::count();
+        $totalOrdersToday = Order::where('created_at', '>=', now()->startOfDay())->count();
+        $data = [
+            'total_orders' => $totalOrders,
+            'total_orders_today' => $totalOrdersToday,
+        ];
+        return $this->json($data, 'Lấy thống kê đơn hàng thành công', 200);
+    }
+
     #[Get(uri: "/admin/orders/{id}/details", name: "admin.orders.getById", middleware: "role:admin")]
     /**
      * @OA\Get(
