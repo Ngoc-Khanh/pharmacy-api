@@ -467,6 +467,79 @@ class InvoiceController extends Controller
         return $this->json($invoices, 'Lấy danh sách hóa đơn thành công', 200);
     }
 
+    #[Get(uri: "/admin/invoices/statistics", name: "admin.invoices.statistics", middleware: "role:admin")]
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/invoices/statistics",
+     *     operationId="adminGetInvoiceStatistics",
+     *     tags={"Invoices"},
+     *     summary="Lấy thống kê hóa đơn",
+     *     description="Lấy các thống kê tổng quan về hóa đơn trong hệ thống (chỉ dành cho admin)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy thống kê hóa đơn thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="total_invoices", type="integer", example=150, description="Tổng số hóa đơn"),
+     *                 @OA\Property(property="total_revenue", type="number", example=4500000, description="Tổng doanh thu"),
+     *                 @OA\Property(property="total_average_revenue", type="number", example=30000, description="Doanh thu trung bình mỗi hóa đơn"),
+     *                 @OA\Property(property="total_paid_invoices", type="integer", example=120, description="Số hóa đơn đã thanh toán"),
+     *                 @OA\Property(property="total_pending_invoices", type="integer", example=20, description="Số hóa đơn đang chờ thanh toán"),
+     *                 @OA\Property(property="total_cancelled_invoices", type="integer", example=8, description="Số hóa đơn đã hủy"),
+     *                 @OA\Property(property="total_refunded_invoices", type="integer", example=2, description="Số hóa đơn đã hoàn tiền")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Lấy thống kê hóa đơn thành công"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không được phép truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Không được phép truy cập"),
+     *             @OA\Property(property="status", type="integer", example=401),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không đủ quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền truy cập tính năng này"),
+     *             @OA\Property(property="status", type="integer", example=403),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function invoiceAdminStatistics()
+    {
+        $totalInvoices = Invoice::count();
+        $totalRevenue = Order::sum('total_price');
+        $totalAverageRevenue = $totalRevenue / $totalInvoices;
+        $totalPaidInvoices = Invoice::where('status', InvoiceStatus::PAID->value)->count();
+        $totalPendingInvoices = Invoice::where('status', InvoiceStatus::PENDING->value)->count();
+        $totalCancelledInvoices = Invoice::where('status', InvoiceStatus::CANCELLED->value)->count();
+        $totalRefundedInvoices = Invoice::where('status', InvoiceStatus::REFUNDED->value)->count();
+        $data = [
+            'total_invoices' => $totalInvoices,
+            'total_revenue' => $totalRevenue,
+            'total_average_revenue' => $totalAverageRevenue,
+            'total_paid_invoices' => $totalPaidInvoices,
+            'total_pending_invoices' => $totalPendingInvoices,
+            'total_cancelled_invoices' => $totalCancelledInvoices,
+            'total_refunded_invoices' => $totalRefundedInvoices,
+        ];
+        return $this->json($data, 'Lấy thống kê hóa đơn thành công', 200);
+    }
+
     #[Post(uri: "/admin/invoices/create-with-no-order", name: "admin.invoices.create-with-no-order", middleware: "role:admin")]
     /**
      * @OA\Post(

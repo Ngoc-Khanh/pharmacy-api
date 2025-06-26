@@ -424,7 +424,38 @@ class OrderController extends Controller
      */
     public function getOrdersAdmin()
     {
-        $orders = Order::paginate(10);
+        $perPage = request()->input('per_page', 10);
+        $sortField = request()->input('sort_field', 'created_at');
+        $sortOrder = request()->input('sort_order', 'desc');
+        $search = request()->input('s', '');
+        $allowedSortFields = ['created_at', 'total_price', 'status', 'user_id', 'payment_method', 'shipping_fee', 'sub_total', 'total_price', '_id'];
+        if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
+        $query = Order::query();
+        if ($search) {
+            // Tìm kiếm user theo username, firstname, lastname, email
+            $userIds = User::where(function ($userQuery) use ($search) {
+                $userQuery->where('username', 'like', "%{$search}%")
+                    ->orWhere('firstname', 'like', "%{$search}%")
+                    ->orWhere('lastname', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            })->pluck('_id')->toArray();
+            // Tìm kiếm trong order theo các trường và user_id từ kết quả tìm user
+            $query->where(function ($orderQuery) use ($search, $userIds) {
+                // Tìm kiếm theo ID chính của order (dùng _id)
+                $orderQuery->where('_id', $search)
+                    ->orWhere('user_id', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
+                // Nếu search là chuỗi không phải ObjectId, thử tìm partial match
+                if (strlen($search) < 24) {
+                    $orderQuery->orWhere('_id', 'like', "%{$search}%");
+                }
+                // Thêm điều kiện tìm theo user_id từ kết quả tìm user
+                if (!empty($userIds)) {
+                    $orderQuery->orWhereIn('user_id', $userIds);
+                }
+            });
+        }
+        $orders = $query->orderBy($sortField, $sortOrder)->paginate($perPage);
         $orders->map(function ($order) {
             $user = User::find($order->user_id);
             $order->user = $user ? [
