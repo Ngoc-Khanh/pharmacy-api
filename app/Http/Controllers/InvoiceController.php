@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\OrderStatus;
 use App\Models\Invoice;
 use App\Models\Medicine;
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -471,43 +473,77 @@ class InvoiceController extends Controller
      *     path="/v1/admin/invoices/create-with-no-order",
      *     operationId="adminCreateInvoiceWithNoOrder",
      *     tags={"Invoices"},
-     *     summary="Tạo hóa đơn không kèm đơn hàng",
-     *     description="Tạo một hóa đơn mới không liên kết với đơn hàng (chỉ dành cho admin)",
+     *     summary="Tạo hóa đơn và tự động sinh đơn hàng",
+     *     description="Tạo một hóa đơn mới và tự động tạo đơn hàng tương ứng (chỉ dành cho admin)",
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"user_id", "invoice_number", "items", "payment_method", "issued_at", "status"},
+     *             required={"user_id", "items", "payment_method", "shipping_address"},
      *             @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *             @OA\Property(property="invoice_number", type="string", example="INV-20240310-001"),
+     *             @OA\Property(property="invoice_number", type="string", example="INV-20240310-001", description="Tùy chọn, sẽ tự động tạo nếu không cung cấp"),
      *             @OA\Property(property="items", type="array", 
      *                 @OA\Items(
-     *                     @OA\Property(property="medicine_id", type="string"),
-     *                     @OA\Property(property="quantity", type="integer"),
-     *                     @OA\Property(property="price", type="number")
+     *                     @OA\Property(property="medicine_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="quantity", type="integer", example=2),
+     *                     @OA\Property(property="price", type="number", example=15000)
      *                 )
      *             ),
-     *             @OA\Property(property="payment_method", type="string", example="bank_transfer"),
-     *             @OA\Property(property="issued_at", type="string", format="date-time"),
-     *             @OA\Property(property="status", type="string", example="pending")
+     *             @OA\Property(property="payment_method", type="string", example="COD", enum={"COD", "CREDIT-CARD", "BANK-TRANSFER"}),
+     *             @OA\Property(property="shipping_address", type="object",
+     *                 @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
+     *                 @OA\Property(property="phone", type="string", example="0901234567"),
+     *                 @OA\Property(property="address_line1", type="string", example="123 Đường Nguyễn Huệ"),
+     *                 @OA\Property(property="city", type="string", example="Quận 1"),
+     *                 @OA\Property(property="state", type="string", example="TP Hồ Chí Minh"),
+     *                 @OA\Property(property="country", type="string", example="Việt Nam")
+     *             ),
+     *             @OA\Property(property="issued_at", type="string", format="date-time", description="Tùy chọn, mặc định là thời gian hiện tại"),
+     *             @OA\Property(property="status", type="string", example="PENDING", description="Tùy chọn, mặc định là PENDING")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Tạo hóa đơn thành công",
+     *         description="Tạo hóa đơn và đơn hàng thành công",
      *         @OA\JsonContent(
      *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
-     *                 @OA\Property(property="user_id", type="string"),
-     *                 @OA\Property(property="invoice_number", type="string"),
-     *                 @OA\Property(property="items", type="array", @OA\Items(type="object")),
-     *                 @OA\Property(property="payment_method", type="string"),
-     *                 @OA\Property(property="issued_at", type="string", format="date-time"),
-     *                 @OA\Property(property="status", type="string"),
-     *                 @OA\Property(property="created_at", type="string", format="date-time")
+     *                 @OA\Property(property="order", type="object",
+     *                     @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="status", type="string", example="PENDING"),
+     *                     @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="sub_total", type="number", example=30000),
+     *                     @OA\Property(property="shipping_fee", type="number", example=15000),
+     *                     @OA\Property(property="discount", type="number", example=0),
+     *                     @OA\Property(property="total_price", type="number", example=45000),
+     *                     @OA\Property(property="shipping_address", type="object"),
+     *                     @OA\Property(property="payment_method", type="string", example="COD"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time")
+     *                 ),
+     *                 @OA\Property(property="invoice", type="object",
+     *                     @OA\Property(property="_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="order_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="user_id", type="string", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="invoice_number", type="string", example="INV-20240310-001"),
+     *                     @OA\Property(property="items", type="array", @OA\Items(type="object")),
+     *                     @OA\Property(property="total_price", type="number", example=45000),
+     *                     @OA\Property(property="payment_method", type="string", example="COD"),
+     *                     @OA\Property(property="issued_at", type="string", format="date-time"),
+     *                     @OA\Property(property="status", type="string", example="PENDING"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time")
+     *                 )
      *             ),
-     *             @OA\Property(property="message", type="string", example="Thêm hóa đơn thành công"),
+     *             @OA\Property(property="message", type="string", example="Tạo hóa đơn và đơn hàng thành công"),
      *             @OA\Property(property="status", type="integer", example=200)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Lỗi dữ liệu",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="message", type="string", example="Người dùng không tồn tại"),
+     *             @OA\Property(property="status", type="integer", example=400)
      *         )
      *     ),
      *     @OA\Response(
@@ -535,14 +571,99 @@ class InvoiceController extends Controller
     {
         $request->validate([
             'user_id' => 'required|string',
-            'invoice_number' => 'required|string',
+            'order_id' => 'nullable|string',
+            'invoice_number' => 'nullable|string|unique:invoices,invoice_number',
             'items' => 'required|array',
-            'payment_method' => 'required|string',
-            'issued_at' => 'required|date',
-            'status' => 'required|string',
+            'items.*.medicine_id' => 'required|string',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|in:COD,CREDIT-CARD,BANK-TRANSFER',
+            'shipping_address' => 'required|array',
+            'shipping_address.name' => 'required|string',
+            'shipping_address.phone' => 'required|string',
+            'shipping_address.address_line1' => 'required|string',
+            'shipping_address.city' => 'required|string',
+            'shipping_address.state' => 'required|string',
+            'shipping_address.country' => 'required|string',
+            'issued_at' => 'nullable|date',
+            'status' => 'nullable|string',
         ]);
-        $invoice = Invoice::create($request->all());
-        return $this->json($invoice, 'Thêm hóa đơn thành công', 200);
+        $data = $request->all();
+        // Kiểm tra user tồn tại
+        $user = User::find($data['user_id']);
+        if (!$user) return $this->fail(null, 'Người dùng không tồn tại', 400);
+        $medicineIds = array_column($data['items'], 'medicine_id');
+        $medicines = Medicine::whereIn('_id', $medicineIds)->get()->keyBy('_id');
+        foreach ($data['items'] as $item) {
+            if (!isset($medicines[$item['medicine_id']])) return $this->fail(null, 'Sản phẩm không tồn tại: ' . $item['medicine_id'], 400);
+        }
+        // Tự động tạo invoice_number nếu không có
+        if (!isset($data['invoice_number']) || !$data['invoice_number']) {
+            $today = date('Ymd');
+            $lastInvoice = Invoice::where('invoice_number', 'like', "INV-{$today}%")
+                ->orderBy('invoice_number', 'desc')
+                ->first();
+            $sequenceNumber = 1;
+            if ($lastInvoice) {
+                $parts = explode('-', $lastInvoice->invoice_number);
+                $sequenceNumber = (int)end($parts) + 1;
+            }
+            $data['invoice_number'] = sprintf("INV-%s-%03d", $today, $sequenceNumber);
+        }
+        // Tính toán giá từng item và tổng giá (tham khảo logic từ OrderController)
+        $orderItems = [];
+        $subTotal = 0;
+        $shippingFee = 15000; // Default shipping fee
+        $discount = 0;
+        foreach ($data['items'] as $item) {
+            $medicine = $medicines[$item['medicine_id']];
+            $itemTotal = $item['quantity'] * $item['price'];
+            $orderItem = [
+                'medicine_id' => $item['medicine_id'],
+                'name' => $medicine->name,
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'item_total' => $itemTotal,
+            ];
+            $orderItems[] = $orderItem;
+            $subTotal += $itemTotal;
+        }
+        if ($subTotal > 300000) $discount = $subTotal * 0.05; // 5% discount for orders above 300,000 VND
+        if ($subTotal > 500000) $shippingFee = 0; // Free shipping for orders above 500,000 VND
+        $totalPrice = $subTotal + $shippingFee - $discount;
+        // Tạo đơn hàng trước
+        $order = Order::create([
+            'user_id' => $data['user_id'],
+            'status' => OrderStatus::PENDING->value,
+            'items' => $orderItems,
+            'sub_total' => $subTotal,
+            'shipping_fee' => $shippingFee,
+            'discount' => $discount,
+            'total_price' => $totalPrice,
+            'shipping_address' => $data['shipping_address'],
+            'payment_method' => $data['payment_method'],
+            'created_at' => now(),
+        ]);
+
+        // Tạo hóa đơn với thông tin đơn hàng
+        $invoiceData = [
+            'order_id' => $order->_id,
+            'user_id' => $data['user_id'],
+            'invoice_number' => $data['invoice_number'],
+            'items' => $orderItems,
+            'total_price' => $totalPrice,
+            'payment_method' => $data['payment_method'],
+            'issued_at' => $data['issued_at'] ?? now(),
+            'status' => $data['status'] ?? InvoiceStatus::PENDING,
+            'created_at' => now(),
+        ];
+        $invoice = Invoice::create($invoiceData);
+        // Trả về kết quả với cả order và invoice
+        $result = [
+            'order' => $order,
+            'invoice' => $invoice,
+        ];
+        return $this->json($result, 'Tạo hóa đơn và đơn hàng thành công', 200);
     }
 
     #[Get(uri: "/admin/invoices/{id}/detail", name: "admin.invoices.details", middleware: "role:admin")]
@@ -550,7 +671,7 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::where('_id', $id)->first();
         if (!$invoice) return $this->fail(null, 'Hóa đơn không tồn tại', 400);
-        $user = \App\Models\User::find($invoice->user_id);
+        $user = User::find($invoice->user_id);
         if ($user) {
             $invoice->user = [
                 'id' => $user->_id,
