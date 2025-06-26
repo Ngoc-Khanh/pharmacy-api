@@ -97,6 +97,16 @@ class SupplierController extends Controller
         return $this->json($suppliers, 'Danh sách nhà cung cấp');
     }
 
+    #[Get(uri: "/statistics", name: "admin.supplier.statistic", middleware: "role:admin")]
+    public function getSupplierStatisticAdmin()
+    {
+        $totalSuppliers = Supplier::count();
+        $data = [
+            'total_suppliers' => $totalSuppliers,
+        ];
+        return $this->json($data, 'Thống kê nhà cung cấp');
+    }
+
     #[Post(uri: '/add', name: 'admin.supplier.add')]
     /**
      * @OA\Post(
