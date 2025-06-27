@@ -146,6 +146,16 @@ class MedicineController extends Controller
         return $this->json($medicines, 'Danh sách thuốc', 200);
     }
 
+    #[Get(uri: "/statistics", name: "admin.medicine.statistic", middleware: "role:admin")]
+    public function getMedicineStatisticAdmin()
+    {
+        $totalMedicine = Medicine::count();
+        $data = [
+            'total_medicine' => $totalMedicine,
+        ];
+        return $this->json($data, 'Thống kê thuốc');
+    }
+
     /**
      * @OA\Get(
      *     path="/v1/admin/medicines/{id}/details",
