@@ -66,86 +66,65 @@ class MedicineController extends Controller
     #[Get(uri: "/", name: "admin.medicines.index")]
     public function listMedicine(Request $request)
     {
-        $query = Medicine::with(['category', 'supplier']);
-
-        // Fix: Check for 'search' parameter instead of 's'
-        if ($request->has('search') && !empty($request->search)) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'like', "%{$searchTerm}%")
-                    ->orWhere('description', 'like', "%{$searchTerm}%")
-                    ->orWhere('details.ingredients', 'like', "%{$searchTerm}%")
-                    // Add more searchable fields if needed
-                    ->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
-                        $categoryQuery->where('name', 'like', "%{$searchTerm}%");
-                    })
-                    ->orWhereHas('supplier', function ($supplierQuery) use ($searchTerm) {
-                        $supplierQuery->where('name', 'like', "%{$searchTerm}%");
-                    });
-            });
+        $perPage = $request->input('per_page', 10);
+        $sortField = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $search = $request->input('s', '');
+        $allowedSortFields = ['name', 'created_at', 'updated_at'];
+        if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
+        $query = Medicine::query();
+        if (!empty($search)) {
+            $query->where('name', 'like', "%{$search}%");
         }
-
-        // Filter by category
-        if ($request->has('category_id') && !empty($request->category_id)) {
-            $query->where('category_id', $request->category_id);
-        }
-
-        // Filter by supplier
-        if ($request->has('supplier_id') && !empty($request->supplier_id)) {
-            $query->where('supplier_id', $request->supplier_id);
-        }
-
-        // Fix: Stock status filter - assuming variants is JSON or relation
-        if ($request->has('stock_status') && !empty($request->stock_status)) {
-            $query->whereJsonContains('variants->stock_status', $request->stock_status);
-            // OR if variants is a relation:
-            // $query->whereHas('variants', function ($variantQuery) use ($request) {
-            //     $variantQuery->where('stock_status', $request->stock_status);
-            // });
-        }
-
-        // Fix: Featured filter
-        if ($request->has('is_featured')) {
-            $query->whereJsonContains('variants->is_featured', $request->boolean('is_featured'));
-            // OR if variants is a relation:
-            // $query->whereHas('variants', function ($variantQuery) use ($request) {
-            //     $variantQuery->where('is_featured', $request->boolean('is_featured'));
-            // });
-        }
-
-        // Fix: Active filter
-        if ($request->has('is_active')) {
-            $query->whereJsonContains('variants->is_active', $request->boolean('is_active'));
-            // OR if variants is a relation:
-            // $query->whereHas('variants', function ($variantQuery) use ($request) {
-            //     $variantQuery->where('is_active', $request->boolean('is_active'));
-            // });
-        }
-
-        // Sorting
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-
-        // Fix: Handle JSON field sorting for variants
-        $allowedSortFields = ['name', 'created_at'];
-        if (in_array($sortBy, $allowedSortFields)) {
-            $query->orderBy($sortBy, $sortOrder);
-        } elseif ($sortBy === 'price') {
-            $query->orderBy('variants->price', $sortOrder);
-        } elseif ($sortBy === 'original_price') {
-            $query->orderBy('variants->original_price', $sortOrder);
-        }
-
-        $perPage = min($request->get('per_page', 20), 100); // Limit max per page
-        $medicines = $query->paginate($perPage);
-
-        if ($medicines->isEmpty()) {
-            return $this->fail(null, 'Không tìm thấy thuốc', 404);
-        }
-
+        $medicines = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
         return $this->json($medicines, 'Danh sách thuốc', 200);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/v1/admin/medicines/statistics",
+     *     operationId="getMedicineStatistics",
+     *     tags={"Medicines"},
+     *     summary="Lấy thống kê thuốc",
+     *     description="Trả về thống kê tổng quan về số lượng thuốc trong hệ thống",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thống kê thuốc thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="total_medicine", type="integer", example=150, description="Tổng số thuốc trong hệ thống")
+     *             ),
+     *             @OA\Property(property="message", type="string", example="Thống kê thuốc"),
+     *             @OA\Property(property="status", type="integer", example=200),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="null", example=null)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Chưa xác thực",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null", example=null),
+     *             @OA\Property(property="message", type="string", example="Unauthorized"),
+     *             @OA\Property(property="status", type="integer", example=401),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="array", @OA\Items(type="string"), example={})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="null", example=null),
+     *             @OA\Property(property="message", type="string", example="Access denied"),
+     *             @OA\Property(property="status", type="integer", example=403),
+     *             @OA\Property(property="locale", type="string", example="vi_VN"),
+     *             @OA\Property(property="error", type="array", @OA\Items(type="string"), example={})
+     *         )
+     *     )
+     * )
+     */
     #[Get(uri: "/statistics", name: "admin.medicine.statistic", middleware: "role:admin")]
     public function getMedicineStatisticAdmin()
     {
