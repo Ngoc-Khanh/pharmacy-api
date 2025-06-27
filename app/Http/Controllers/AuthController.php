@@ -659,4 +659,26 @@ class AuthController extends Controller
       'user' => $user,
     ], "Đăng nhập thành công");
   }
+
+  #[Post('/refresh-token', 'auth.refreshToken')]
+  public function refreshToken()
+  {
+    $currentToken = JWTAuth::getToken();
+    if (!$currentToken) return $this->fail(null, 'Không tìm thấy token hiện tại', 401);
+    $newToken = JWTAuth::refresh($currentToken);
+    $ttl = config('jwt.ttl') * 60;
+    $user = JWTAuth::setToken($newToken)->toUser();
+    Log::info('Token refreshed successfully', [
+      'user_id' => $user ? $user->id : 'unknown',
+      'email' => $user ? $user->email : 'unknown',
+      'ip' => request()->ip(),
+      'user_agent' => request()->userAgent()
+    ]);
+    $data = [
+      'access_token' => $newToken,
+      'token_type' => 'Bearer',
+      'expires_in' => $ttl,
+    ];
+    return $this->json($data, 'Làm mới token thành công', 200);
+  }
 }
