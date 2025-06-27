@@ -94,6 +94,32 @@ class CategoryController extends Controller
         return $this->json($categories, 'Danh sách danh mục');
     }
 
+    #[Get(uri: '/{id}/detail', name: 'category.detail')]
+    public function detail($id)
+    {
+        $category = Category::with('medicines')->find($id);
+        if (!$category) return $this->fail(null, 'Danh mục không tồn tại', 404);
+        return $this->json($category, 'Chi tiết danh mục');
+    }
+
+    #[Get(uri: '/statistics', name: 'category.statistics')]
+    public function statistics()
+    {
+        $totalCategories = Category::count();
+        $totalActiveCategories = Category::where('is_active', true)->count();
+        $totalInactiveCategories = Category::where('is_active', false)->count();        
+        $categoriesWithProducts = Category::has('medicines')->count();
+        $categoriesWithoutProducts = Category::doesntHave('medicines')->count();        
+        $data = [
+            'total_categories' => $totalCategories,
+            'total_active_categories' => $totalActiveCategories,
+            'total_inactive_categories' => $totalInactiveCategories,
+            'categories_with_products' => $categoriesWithProducts,
+            'categories_without_products' => $categoriesWithoutProducts,
+        ];
+        return $this->json($data, 'Thống kê danh mục');
+    }
+
     /**
      * @OA\Post(
      *     path="/v1/admin/categories/create",
