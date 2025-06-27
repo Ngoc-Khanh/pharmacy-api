@@ -286,6 +286,7 @@ class MedicineController extends Controller
             'description' => $validated['description'],
             'variants' => [
                 'price' => $validated['variants']['original_price'] - ($validated['variants']['original_price'] * $validated['variants']['discount_percent'] / 100),
+                'quantity' => $validated['variants']['quantity'],
                 'limit_quantity' => $validated['variants']['limit_quantity'],
                 'stock_status' => $validated['variants']['stock_status'],
                 'original_price' => $validated['variants']['original_price'],

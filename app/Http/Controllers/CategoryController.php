@@ -76,9 +76,22 @@ class CategoryController extends Controller
      * )
      */
     #[Get(uri: '/', name: 'category.list')]
-    public function listCategories()
+    public function listCategories(Request $request)
     {
-        return $this->json(Category::all(), 'Danh sách danh mục');
+        $perPage = $request->input('per_page', 10);
+        $sortField = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $search = $request->input('s', '');
+        $allowedSortFields = ['title', 'created_at', 'updated_at'];
+        if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
+        $query = Category::query();
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%");
+            });
+        }
+        $categories = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
+        return $this->json($categories, 'Danh sách danh mục');
     }
 
     /**
