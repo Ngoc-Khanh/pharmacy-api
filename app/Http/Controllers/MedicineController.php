@@ -588,21 +588,25 @@ class MedicineController extends Controller
         $validator = Validator::make($request->all(), [
             'thumbnail' => 'required|image|mimes:jpeg,png,jpg|max:5120',
         ]);
-        if ($validator->fails()) return $this->fail(null, 'Dữ liệu không hợp lệ', 422);
+        if ($validator->fails()) return $this->fail($validator->errors(), 'Dữ liệu không hợp lệ: ' . $validator->errors()->first(), 422);
         $medicine = Medicine::find($id);
-        if (!$medicine) return $this->fail(null, 'Không tìm thấy thuốc', 404);
-        $imageUtils = new ImageUtils();
-        $uploadResult = $imageUtils->uploadImage(
-            $request->file('thumbnail'),
-            'medicines'
-        );
-        if (!$uploadResult['success']) return $this->fail(null, 'Không thể tải ảnh: ' . $uploadResult['message'], 500);
-        $medicine->thumbnail = [
-            'public_id' => $uploadResult['public_id'],
-            'url' => $uploadResult['url'],
-            'alt' => $medicine->slug . '-alt',
-        ];
-        $medicine->save();
-        return $this->json($medicine, 'Đã tải ảnh thành công', 200);
+        if (!$medicine) return $this->fail(null, "Không tìm thấy thuốc với ID: {$id}", 404);
+        try {
+            $imageUtils = new ImageUtils();
+            $uploadResult = $imageUtils->uploadImage(
+                $request->file('thumbnail'),
+                'medicines'
+            );
+            if (!$uploadResult['success']) return $this->fail(null, 'Không thể tải ảnh: ' . $uploadResult['message'], 500);
+            $medicine->thumbnail = [
+                'public_id' => $uploadResult['public_id'],
+                'url' => $uploadResult['url'],
+                'alt' => $medicine->slug . '-alt',
+            ];
+            $medicine->save();
+            return $this->json($medicine, 'Đã tải ảnh thành công', 200);
+        } catch (\Exception $e) {
+            return $this->fail(null, 'Lỗi hệ thống khi tải ảnh: ' . $e->getMessage(), 500);
+        }
     }
 }
