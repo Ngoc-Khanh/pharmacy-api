@@ -316,7 +316,7 @@ class MedicineController extends Controller
                 'precautions' => $validated['usageguide']['precautions'],
             ],
         ]);
-        if ($data && $data->_id) $this->embeddingService->embedMedicineAsync($data->_id);
+        if ($data && $data->_id) $this->embeddingService->embedMedicine($data->_id);
         return $this->json($data, 'Đã thêm thuốc thành công', 201);
     }
 
@@ -424,6 +424,7 @@ class MedicineController extends Controller
             'name' => 'nullable|string|min:3|max:255',
             'description' => 'nullable|string|min:3|max:1000',
             'variants.price' => 'nullable|numeric|min:0',
+            'variants.quantity' => 'nullable|integer|min:0',
             'variants.limit_quantity' => 'nullable|integer|min:0',
             'variants.stock_status' => 'nullable|string|in:IN-STOCK,OUT-OF-STOCK,PRE-ORDER',
             'variants.original_price' => 'nullable|numeric|min:0',
@@ -442,6 +443,7 @@ class MedicineController extends Controller
             'usageguide.precautions' => 'nullable|array',
             'usageguide.precautions.*' => 'nullable|string|min:2|max:255',
         ]);
+        $updateData = [];
         if ($request->has('category_id')) $updateData['category_id'] = $request->category_id;
         if ($request->has('supplier_id')) $updateData['supplier_id'] = $request->supplier_id;
         if ($request->has('name')) {
@@ -482,11 +484,12 @@ class MedicineController extends Controller
             }
             if (isset($newUsageGuide['directions'])) $mergedUsageGuide['directions'] = $newUsageGuide['directions'];
             if (isset($newUsageGuide['precautions'])) $mergedUsageGuide['precautions'] = $newUsageGuide['precautions'];
+            
             $updateData['usageguide'] = $mergedUsageGuide;
         }
-        if ($updateData && isset($updateData['_id'])) $this->embeddingService->embedMedicineAsync($updateData['_id']);
         $medicine->update($updateData);
         $medicine->refresh();
+        $this->embeddingService->embedMedicine($medicine->_id);
         return $this->json($medicine, 'Đã cập nhật thuốc thành công', 200);
     }
 
@@ -530,7 +533,7 @@ class MedicineController extends Controller
     {
         $medicine = Medicine::find($id);
         if (!$medicine) return $this->fail(null, 'Không tìm thấy thuốc', 404);
-        $this->embeddingService->deleteMedicineEmbeddingAsync($id);
+        $this->embeddingService->deleteMedicineEmbedding($id);
         $medicine->delete();
         return $this->json(null, 'Đã xóa thuốc thành công', 200);
     }
