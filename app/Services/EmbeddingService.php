@@ -75,7 +75,7 @@ class EmbeddingService
     public function deleteMedicineEmbedding(string $medicineId): array
     {
         try {
-            $url = "{$this->baseUrl}/v1/embed/{$medicineId}/delete-embedding";
+            $url = "{$this->baseUrl}/v1/embed/{$medicineId}/delete-medicine";
             Log::info('Calling delete embedding API', [
                 'url' => $url,
                 'medicine_id' => $medicineId,
