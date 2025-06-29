@@ -3320,6 +3320,87 @@
                 ]
             }
         },
+        "/v1/admin/excel/export-all": {
+            "get": {
+                "tags": [
+                    "Excel Export"
+                ],
+                "summary": "Xuất tất cả dữ liệu hệ thống",
+                "description": "Xuất tất cả dữ liệu (users, suppliers, medicines, orders, categories, invoices, reviews) ra file Excel",
+                "operationId": "07f6c6d0b37bf61f7786fb5c59e1e548",
+                "responses": {
+                    "200": {
+                        "description": "File Excel được tải xuống thành công",
+                        "content": {
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/excel/export/{module}": {
+            "get": {
+                "tags": [
+                    "Excel Export"
+                ],
+                "summary": "Xuất dữ liệu theo module",
+                "description": "Xuất dữ liệu của một module cụ thể (users, suppliers, medicines, orders, categories, invoices, reviews)",
+                "operationId": "392f90d07924c9956578f03d8647b649",
+                "parameters": [
+                    {
+                        "name": "module",
+                        "in": "path",
+                        "description": "Tên module cần xuất",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "users",
+                                "suppliers",
+                                "medicines",
+                                "orders",
+                                "categories",
+                                "invoices",
+                                "reviews"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File Excel được tải xuống thành công",
+                        "content": {
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Module không hợp lệ"
+                    },
+                    "401": {
+                        "description": "Chưa xác thực"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/store/invoices/list": {
             "get": {
                 "tags": [
@@ -4190,13 +4271,158 @@
                 ]
             }
         },
+        "/v1/admin/invoices/statistics": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Lấy thống kê hóa đơn",
+                "description": "Lấy các thống kê tổng quan về hóa đơn trong hệ thống (chỉ dành cho admin)",
+                "operationId": "adminGetInvoiceStatistics",
+                "responses": {
+                    "200": {
+                        "description": "Lấy thống kê hóa đơn thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "total_invoices": {
+                                                    "description": "Tổng số hóa đơn",
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "total_revenue": {
+                                                    "description": "Tổng doanh thu",
+                                                    "type": "number",
+                                                    "example": 4500000
+                                                },
+                                                "total_average_revenue": {
+                                                    "description": "Doanh thu trung bình mỗi hóa đơn",
+                                                    "type": "number",
+                                                    "example": 30000
+                                                },
+                                                "total_paid_invoices": {
+                                                    "description": "Số hóa đơn đã thanh toán",
+                                                    "type": "integer",
+                                                    "example": 120
+                                                },
+                                                "total_pending_invoices": {
+                                                    "description": "Số hóa đơn đang chờ thanh toán",
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "total_cancelled_invoices": {
+                                                    "description": "Số hóa đơn đã hủy",
+                                                    "type": "integer",
+                                                    "example": 8
+                                                },
+                                                "total_refunded_invoices": {
+                                                    "description": "Số hóa đơn đã hoàn tiền",
+                                                    "type": "integer",
+                                                    "example": 2
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thống kê hóa đơn thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không được phép truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không được phép truy cập"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không đủ quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền truy cập tính năng này"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/admin/invoices/create-with-no-order": {
             "post": {
                 "tags": [
                     "Invoices"
                 ],
-                "summary": "Tạo hóa đơn không kèm đơn hàng",
-                "description": "Tạo một hóa đơn mới không liên kết với đơn hàng (chỉ dành cho admin)",
+                "summary": "Tạo hóa đơn và tự động sinh đơn hàng",
+                "description": "Tạo một hóa đơn mới và tự động tạo đơn hàng tương ứng (chỉ dành cho admin)",
                 "operationId": "adminCreateInvoiceWithNoOrder",
                 "requestBody": {
                     "required": true,
@@ -4205,11 +4431,8 @@
                             "schema": {
                                 "required": [
                                     "user_id",
-                                    "invoice_number",
                                     "items",
-                                    "payment_method",
-                                    "issued_at",
-                                    "status"
+                                    "payment_method"
                                 ],
                                 "properties": {
                                     "user_id": {
@@ -4217,6 +4440,7 @@
                                         "example": "550e8400-e29b-41d4-a716-446655440000"
                                     },
                                     "invoice_number": {
+                                        "description": "Tùy chọn, sẽ tự động tạo nếu không cung cấp",
                                         "type": "string",
                                         "example": "INV-20240310-001"
                                     },
@@ -4225,13 +4449,16 @@
                                         "items": {
                                             "properties": {
                                                 "medicine_id": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
                                                 },
                                                 "quantity": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "example": 2
                                                 },
                                                 "price": {
-                                                    "type": "number"
+                                                    "type": "number",
+                                                    "example": 15000
                                                 }
                                             },
                                             "type": "object"
@@ -4239,15 +4466,62 @@
                                     },
                                     "payment_method": {
                                         "type": "string",
-                                        "example": "bank_transfer"
+                                        "enum": [
+                                            "COD",
+                                            "CREDIT-CARD",
+                                            "BANK-TRANSFER"
+                                        ],
+                                        "example": "COD"
+                                    },
+                                    "shipping_address_id": {
+                                        "description": "ID của địa chỉ đã lưu (ưu tiên sử dụng nếu có)",
+                                        "type": "string",
+                                        "example": "addr_001"
+                                    },
+                                    "shipping_address": {
+                                        "description": "Địa chỉ mới (sử dụng khi không có shipping_address_id)",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Nguyễn Văn A"
+                                            },
+                                            "phone": {
+                                                "type": "string",
+                                                "example": "0901234567"
+                                            },
+                                            "address_line1": {
+                                                "type": "string",
+                                                "example": "123 Đường Nguyễn Huệ"
+                                            },
+                                            "address_line2": {
+                                                "description": "Tùy chọn",
+                                                "type": "string",
+                                                "example": "Tầng 2"
+                                            },
+                                            "city": {
+                                                "type": "string",
+                                                "example": "Quận 1"
+                                            },
+                                            "state": {
+                                                "type": "string",
+                                                "example": "TP Hồ Chí Minh"
+                                            },
+                                            "country": {
+                                                "type": "string",
+                                                "example": "Việt Nam"
+                                            }
+                                        },
+                                        "type": "object"
                                     },
                                     "issued_at": {
+                                        "description": "Tùy chọn, mặc định là thời gian hiện tại",
                                         "type": "string",
                                         "format": "date-time"
                                     },
                                     "status": {
+                                        "description": "Tùy chọn, mặc định là PENDING",
                                         "type": "string",
-                                        "example": "pending"
+                                        "example": "PENDING"
                                     }
                                 },
                                 "type": "object"
@@ -4257,53 +4531,143 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Tạo hóa đơn thành công",
+                        "description": "Tạo hóa đơn và đơn hàng thành công",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "data": {
                                             "properties": {
-                                                "_id": {
-                                                    "type": "string",
-                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                "order": {
+                                                    "properties": {
+                                                        "_id": {
+                                                            "type": "string",
+                                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                        },
+                                                        "user_id": {
+                                                            "type": "string",
+                                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "PENDING"
+                                                        },
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "sub_total": {
+                                                            "type": "number",
+                                                            "example": 30000
+                                                        },
+                                                        "shipping_fee": {
+                                                            "type": "number",
+                                                            "example": 15000
+                                                        },
+                                                        "discount": {
+                                                            "type": "number",
+                                                            "example": 0
+                                                        },
+                                                        "total_price": {
+                                                            "type": "number",
+                                                            "example": 45000
+                                                        },
+                                                        "shipping_address": {
+                                                            "type": "object"
+                                                        },
+                                                        "payment_method": {
+                                                            "type": "string",
+                                                            "example": "COD"
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 },
-                                                "user_id": {
-                                                    "type": "string"
-                                                },
-                                                "invoice_number": {
-                                                    "type": "string"
-                                                },
-                                                "items": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "payment_method": {
-                                                    "type": "string"
-                                                },
-                                                "issued_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "status": {
-                                                    "type": "string"
-                                                },
-                                                "created_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
+                                                "invoice": {
+                                                    "properties": {
+                                                        "_id": {
+                                                            "type": "string",
+                                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                        },
+                                                        "order_id": {
+                                                            "type": "string",
+                                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                        },
+                                                        "user_id": {
+                                                            "type": "string",
+                                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                        },
+                                                        "invoice_number": {
+                                                            "type": "string",
+                                                            "example": "INV-20240310-001"
+                                                        },
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "total_price": {
+                                                            "type": "number",
+                                                            "example": 45000
+                                                        },
+                                                        "payment_method": {
+                                                            "type": "string",
+                                                            "example": "COD"
+                                                        },
+                                                        "issued_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "PENDING"
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 }
                                             },
                                             "type": "object"
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Thêm hóa đơn thành công"
+                                            "example": "Tạo hóa đơn và đơn hàng thành công"
                                         },
                                         "status": {
                                             "type": "integer",
                                             "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi dữ liệu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Người dùng không tồn tại"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 400
                                         }
                                     },
                                     "type": "object"
@@ -4353,6 +4717,196 @@
                                         "status": {
                                             "type": "integer",
                                             "example": 401
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/invoices/{id}/change-status": {
+            "patch": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Thay đổi trạng thái hóa đơn",
+                "description": "Thay đổi trạng thái của hóa đơn (chỉ dành cho admin)",
+                "operationId": "adminChangeInvoiceStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của hóa đơn cần thay đổi trạng thái",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "description": "Trạng thái mới của hóa đơn",
+                                        "type": "string",
+                                        "enum": [
+                                            "PENDING",
+                                            "PAID",
+                                            "CANCELLED",
+                                            "REFUNDED"
+                                        ],
+                                        "example": "PAID"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Thay đổi trạng thái hóa đơn thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "invoice_number": {
+                                                    "type": "string",
+                                                    "example": "INV-20240310-001"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "PAID"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Thay đổi trạng thái hóa đơn thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Hóa đơn không tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Hóa đơn không tồn tại"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 400
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The status field is required."
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không có quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không đủ quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền truy cập vào tài nguyên này"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
                                         }
                                     },
                                     "type": "object"
@@ -4527,6 +5081,131 @@
                 "security": [
                     {
                         "bearer_token": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/medicines/statistics": {
+            "get": {
+                "tags": [
+                    "Medicines"
+                ],
+                "summary": "Lấy thống kê thuốc",
+                "description": "Trả về thống kê tổng quan về số lượng thuốc trong hệ thống",
+                "operationId": "getMedicineStatistics",
+                "responses": {
+                    "200": {
+                        "description": "Thống kê thuốc thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "total_medicine": {
+                                                    "description": "Tổng số thuốc trong hệ thống",
+                                                    "type": "integer",
+                                                    "example": 150
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Thống kê thuốc"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": []
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Access denied"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": []
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }
@@ -5995,6 +6674,90 @@
                 ]
             }
         },
+        "/v1/admin/orders/statistic": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Lấy thống kê đơn hàng (Admin)",
+                "description": "Trả về thống kê tổng quan về đơn hàng bao gồm tổng số đơn hàng và số đơn hàng trong ngày",
+                "operationId": "getOrderStatisticAdmin",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "total_orders": {
+                                                    "description": "Tổng số đơn hàng",
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "total_orders_today": {
+                                                    "description": "Số đơn hàng trong ngày hôm nay",
+                                                    "type": "integer",
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thống kê đơn hàng thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không có quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không đủ quyền admin",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/admin/orders/{id}/details": {
             "get": {
                 "tags": [
@@ -6898,6 +7661,561 @@
                                         "data": {
                                             "type": "null",
                                             "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/settings/profile-update": {
+            "patch": {
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Cập nhật thông tin profile",
+                "description": "Cập nhật firstname và lastname của user hiện tại",
+                "operationId": "profileUpdate",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Bearer token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer your-jwt-token"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "firstname": {
+                                        "description": "Tên",
+                                        "type": "string",
+                                        "example": "Nguyễn"
+                                    },
+                                    "lastname": {
+                                        "description": "Họ",
+                                        "type": "string",
+                                        "example": "Văn A"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thông tin thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật thông tin thành công"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "firstname": {
+                                                    "type": "string",
+                                                    "example": "Nguyễn"
+                                                },
+                                                "lastname": {
+                                                    "type": "string",
+                                                    "example": "Văn A"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "admin"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-01-01T00:00:00.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-01-01T00:00:00.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/settings/account-update": {
+            "patch": {
+                "tags": [
+                    "Admin Settings"
+                ],
+                "summary": "Cập nhật thông tin tài khoản admin",
+                "description": "Cập nhật username và email của admin đã đăng nhập",
+                "operationId": "adminAccountUpdate",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "username": {
+                                        "description": "Tên đăng nhập mới (tùy chọn)",
+                                        "type": "string",
+                                        "example": "admin123"
+                                    },
+                                    "email": {
+                                        "description": "Email mới (tùy chọn)",
+                                        "type": "string",
+                                        "example": "admin@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thông tin thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "admin123"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@example.com"
+                                                },
+                                                "firstname": {
+                                                    "type": "string",
+                                                    "example": "Admin"
+                                                },
+                                                "lastname": {
+                                                    "type": "string",
+                                                    "example": "User"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "admin"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật thông tin thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Username đã được sử dụng"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa xác thực",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/settings/password-update": {
+            "patch": {
+                "tags": [
+                    "Admin Settings"
+                ],
+                "summary": "Cập nhật mật khẩu admin",
+                "description": "Cập nhật mật khẩu của admin đã đăng nhập",
+                "operationId": "adminPasswordUpdate",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "description": "Mật khẩu hiện tại",
+                                        "type": "string",
+                                        "example": "OldPassword123!"
+                                    },
+                                    "new_password": {
+                                        "description": "Mật khẩu mới - phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt",
+                                        "type": "string",
+                                        "example": "NewPassword456@"
+                                    },
+                                    "new_password_confirmation": {
+                                        "description": "Xác nhận mật khẩu mới",
+                                        "type": "string",
+                                        "example": "NewPassword456@"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật mật khẩu thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "admin123"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@example.com"
+                                                },
+                                                "firstname": {
+                                                    "type": "string",
+                                                    "example": "Admin"
+                                                },
+                                                "lastname": {
+                                                    "type": "string",
+                                                    "example": "User"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "admin"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật mật khẩu thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Mật khẩu hiện tại không chính xác",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mật khẩu hiện tại không chính xác"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mật khẩu mới phải có ít nhất 8 ký tự"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "null"
                                         }
                                     },
                                     "type": "object"
@@ -9620,6 +10938,202 @@
                 ]
             }
         },
+        "/v1/admin/users/{id}/detail": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Lấy chi tiết người dùng",
+                "description": "Lấy thông tin chi tiết của một người dùng theo ID",
+                "operationId": "getUserDetail",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của người dùng",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "65f1b3fc5bce7125f4001ec2"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thông tin thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "65f1b3fc5bce7125f4001ec2"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "user1"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user1@example.com"
+                                                },
+                                                "firstname": {
+                                                    "type": "string",
+                                                    "example": "Nguyen"
+                                                },
+                                                "lastname": {
+                                                    "type": "string",
+                                                    "example": "Van A"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "0901234567"
+                                                },
+                                                "profile_image": {
+                                                    "type": "string",
+                                                    "example": "1.jpg"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "customer"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thông tin người dùng thành công"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không được phép truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không được phép truy cập"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không đủ quyền truy cập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền truy cập tính năng này"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 403
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy người dùng",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy người dùng"
+                                        },
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "locale": {
+                                            "type": "string",
+                                            "example": "vi_VN"
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/admin/users/add": {
             "post": {
                 "tags": [
@@ -10524,6 +12038,10 @@
             "description": "Đánh giá sản phẩm"
         },
         {
+            "name": "Settings",
+            "description": "Các API endpoint để quản lý cài đặt"
+        },
+        {
             "name": "Dashboard",
             "description": "Các API endpoint để quản lý thống kê tổng quan dashboard cho quản trị viên"
         },
@@ -10538,6 +12056,14 @@
         {
             "name": "Users",
             "description": "Quản lý người dùng hệ thống"
+        },
+        {
+            "name": "Excel Export",
+            "description": "Excel Export"
+        },
+        {
+            "name": "Admin Settings",
+            "description": "Admin Settings"
         },
         {
             "name": "Test",
