@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Invoice;
 use App\Models\Medicine;
 use App\Models\Order;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
@@ -199,90 +200,15 @@ class StoreController extends Controller
     #[Get('/medicines', name: 'store.medicines')]
     public function Medicines(Request $request)
     {
-        $perPage = min(max((int)$request->query('per_page', 20), 1), 100);
+        $perPage = $request->input('per_page', 10);
+        $sortField = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $search = $request->input('s', '');
+        $allowedSortFields = ['name', 'created_at', 'updated_at'];
+        if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
         $query = Medicine::with(['category', 'supplier']);
-        if ($search = $request->query('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('slug', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-        if ($categoryId = $request->query('category')) {
-            if (is_string($categoryId) && str_contains($categoryId, ',')) {
-                $categoryIds = array_map('intval', explode(',', $categoryId));
-                $query->whereIn('category_id', $categoryIds);
-            } else {
-                $query->where('category_id', $categoryId);
-            }
-        }
-        if ($categorySlug = $request->query('category_slug')) {
-            if (is_string($categorySlug) && str_contains($categorySlug, ',')) {
-                $categorySlugs = array_map('trim', explode(',', $categorySlug));
-                $query->whereHas('category', function ($q) use ($categorySlugs) {
-                    $q->whereIn('slug', $categorySlugs);
-                });
-            } else {
-                $query->whereHas('category', function ($q) use ($categorySlug) {
-                    $q->where('slug', $categorySlug);
-                });
-            }
-        }
-        if ($minPrice = $request->query('min_price')) $query->where('price', '>=', (float)$minPrice);
-        if ($maxPrice = $request->query('max_price')) $query->where('price', '<=', (float)$maxPrice);
-        if ($minRating = $request->query('min_rating')) $query->where('ratings.star', '>=', (float)$minRating);
-        if ($status = $request->query('status')) {
-            if (is_string($status) && str_contains($status, ',')) {
-                $statuses = array_map('trim', explode(',', $status));
-                $query->where(function ($q) use ($statuses) {
-                    foreach ($statuses as $singleStatus) {
-                        switch (strtoupper($singleStatus)) {
-                            case MedicineStatus::IN_STOCK->value:
-                                $q->orWhere('stock', '>', 10);
-                                break;
-                            case MedicineStatus::OUT_OF_STOCK->value:
-                                $q->orWhere('stock', '<=', 0);
-                                break;
-                        }
-                    }
-                });
-            } else {
-                switch (strtoupper($status)) {
-                    case MedicineStatus::IN_STOCK->value:
-                        $query->where('stock', '>', 10);
-                        break;
-                    case MedicineStatus::OUT_OF_STOCK->value:
-                        $query->where('stock', '<=', 0);
-                        break;
-                }
-            }
-        }
-        $sortBy = $request->query('sort_by', 'newest');
-        switch ($sortBy) {
-            case 'price_asc':
-                $query->orderBy('price', 'asc');
-                break;
-            case 'price_desc':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'name_asc':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'name_desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'rating_desc':
-                $query->orderBy('ratings.star', 'desc');
-                break;
-            case 'oldest':
-                $query->orderBy('created_at', 'asc');
-                break;
-            case 'newest':
-            default:
-                $query->orderBy('created_at', 'desc');
-                break;
-        }
-        $medicines = $query->paginate($perPage);
+        if (!empty($search)) $query->where('name', 'like', "%{$search}%");
+        $medicines = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
         return $this->json($medicines, "Lấy danh sách thuốc thành công");
     }
 
@@ -375,17 +301,112 @@ class StoreController extends Controller
      *     )
      * )
      */
-    public function RootCategories(Request $request)
+    public function RootCategories()
     {
-        $search = $request->query('s');
-        $categories = Category::query()
-            ->when($search, function ($query) use ($search) {
-                $query->where('slug', 'like', '%' . $search . '%')
-                    ->orWhere('name', 'like', '%' . $search . '%');
-            })
-            ->get();
-
+        $categories = Category::all();
+        $categories->map(function ($category) {
+            $category->total_medicines = Medicine::where('category_id', $category->id)->count();
+            return $category;
+        });
         return $this->json($categories, "Lấy toàn bộ danh mục thành công");
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/store/suppliers",
+     *     summary="Lấy danh sách nhà cung cấp với phân trang",
+     *     description="API để lấy danh sách nhà cung cấp có hỗ trợ phân trang và sắp xếp",
+     *     tags={"Store"},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Số trang hiện tại",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1, minimum=1, example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Số lượng nhà cung cấp trên mỗi trang",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10, minimum=1, maximum=100, example=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Trường để sắp xếp",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"created_at", "updated_at", "name"}, default="created_at", example="created_at")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         description="Thứ tự sắp xếp",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"asc", "desc"}, default="desc", example="desc")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Lấy toàn bộ nhà cung cấp thành công"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="per_page", type="integer", example=10),
+     *                 @OA\Property(property="total", type="integer", example=50),
+     *                 @OA\Property(property="last_page", type="integer", example=5),
+     *                 @OA\Property(
+     *                     property="data",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="string", example="65f43c2a8e5c5"),
+     *                         @OA\Property(property="name", type="string", example="Công ty TNHH ABC"),
+     *                         @OA\Property(property="contact_person", type="string", example="Nguyễn Văn A"),
+     *                         @OA\Property(property="email", type="string", example="contact@abc.com"),
+     *                         @OA\Property(property="phone", type="string", example="0123456789"),
+     *                         @OA\Property(property="address", type="string", example="123 Đường ABC, Quận 1, TP.HCM"),
+     *                         @OA\Property(property="created_at", type="string", format="date-time"),
+     *                         @OA\Property(property="updated_at", type="string", format="date-time")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Tham số không hợp lệ",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Tham số không hợp lệ"),
+     *             @OA\Property(property="data", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Lỗi server"),
+     *             @OA\Property(property="data", type="null")
+     *         )
+     *     )
+     * )
+     */
+    #[Get('/suppliers', name: 'store.suppliers')]
+    public function Suppliers(Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+        $sortField = $request->input('sort_by', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $suppliers = Supplier::orderBy($sortField, $sortOrder)->paginate($perPage);
+        return $this->json($suppliers, "Lấy toàn bộ nhà cung cấp thành công");
     }
 
     /**
