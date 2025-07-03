@@ -118,6 +118,7 @@ class UserController extends Controller
     $sortOrder = $request->input('sort_order', 'desc');
     $search = $request->input('s', '');
     $role = $request->input('role', '');
+    $status = $request->input('status', '');
     $allowedSortFields = ['username', 'email', 'firstname', 'lastname', 'role', 'status', 'created_at', 'updated_at'];
     if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
     $query = User::query();
@@ -131,6 +132,7 @@ class UserController extends Controller
       });
     }
     if (!empty($role)) $query->where('role', $role);
+    if (!empty($status)) $query->where('status', $status);
     $users = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
     return $this->json($users, "Lấy danh sách người dùng thành công");
   }
