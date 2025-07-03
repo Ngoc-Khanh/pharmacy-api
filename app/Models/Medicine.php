@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Support\Str;
 use MongoDB\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\SoftDeletes;
 
 class Medicine extends Model
 {
+    use SoftDeletes;
+    
     protected $connection = 'mongodb';
     protected $collection = 'medicines';
     public $incrementing = false;
@@ -23,6 +26,7 @@ class Medicine extends Model
         'details',
         'usageguide',
         'created_by',
+        'deleted_at',
     ];
 
     protected static function boot()

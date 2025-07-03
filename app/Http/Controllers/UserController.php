@@ -117,6 +117,7 @@ class UserController extends Controller
     $sortField = $request->input('sort_by', 'created_at');
     $sortOrder = $request->input('sort_order', 'desc');
     $search = $request->input('s', '');
+    $role = $request->input('role', '');
     $allowedSortFields = ['username', 'email', 'firstname', 'lastname', 'role', 'status', 'created_at', 'updated_at'];
     if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
     $query = User::query();
@@ -129,8 +130,8 @@ class UserController extends Controller
           ->orWhere('phone', 'like', "%{$search}%");
       });
     }
-    $users = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')
-      ->paginate($perPage);
+    if (!empty($role)) $query->where('role', $role);
+    $users = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
     return $this->json($users, "Lấy danh sách người dùng thành công");
   }
 

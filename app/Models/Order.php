@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
+    use SoftDeletes;
+    
     protected $connection = 'mongodb';
     protected $collection = 'orders';
 
@@ -20,6 +23,7 @@ class Order extends Model
         'shipping_address',
         'payment_method',
         'created_at',
+        'deleted_at',
     ];
 
     public function user()
