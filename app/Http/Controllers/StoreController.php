@@ -204,11 +204,48 @@ class StoreController extends Controller
         $sortField = $request->input('sort_by', 'created_at');
         $sortOrder = $request->input('sort_order', 'desc');
         $search = $request->input('s', '');
-        $allowedSortFields = ['name', 'created_at', 'updated_at'];
+        // Filters
+        $categoryId = $request->input('category_id');
+        $supplierId = $request->input('supplier_id');
+        $minPrice = $request->input('min_price');
+        $maxPrice = $request->input('max_price');
+        $minRating = $request->input('min_rating'); // 1-5 stars
+        $allowedSortFields = [
+            'name',
+            'created_at',
+            'updated_at',
+            'price_asc',      // Giá tăng dần
+            'price_desc',     // Giá giảm dần  
+            'rating_desc',    // Đánh giá cao nhất
+            'popular'         // Phổ biến nhất (theo số lượng đánh giá)
+        ];
         if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
         $query = Medicine::with(['category', 'supplier']);
         if (!empty($search)) $query->where('name', 'like', "%{$search}%");
-        $medicines = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
+        if ($categoryId) $query->where('category_id', $categoryId);
+        if ($supplierId) $query->where('supplier_id', $supplierId);
+        if ($minPrice !== null) $query->where('variants.price', '>=', (float)$minPrice);
+        if ($maxPrice !== null) $query->where('variants.price', '<=', (float)$maxPrice);
+        if ($minRating !== null && $minRating >= 1 && $minRating <= 5) $query->where('ratings.star', '>=', (float)$minRating);
+        // Sorting
+        switch ($sortField) {
+            case 'price_asc':
+                $query->orderBy('variants.price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('variants.price', 'desc');
+                break;
+            case 'rating_desc':
+                $query->orderBy('ratings.star', 'desc');
+                break;
+            case 'popular':
+                $query->orderBy('ratings.review_count', 'desc');
+                break;
+            default:
+                $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc');
+                break;
+        }
+        $medicines = $query->paginate($perPage);
         return $this->json($medicines, "Lấy danh sách thuốc thành công");
     }
 
