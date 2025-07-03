@@ -111,29 +111,37 @@ class StatisticsController extends Controller
         $today = Carbon::today();
         $overview = [
             'total_orders' => [
-                'total' => Order::count(),
-                'pending' => Order::where('status', OrderStatus::PENDING)->count(),
-                'completed' => Order::where('status', OrderStatus::COMPLETED)->count(),
-                'cancelled' => Order::where('status', OrderStatus::CANCELLED)->count(),
+                'total' => Order::withTrashed()->count(),
+                'pending' => Order::withTrashed()->where('status', OrderStatus::PENDING)->count(),
+                'completed' => Order::withTrashed()->where('status', OrderStatus::COMPLETED)->count(),
+                'cancelled' => Order::withTrashed()->where('status', OrderStatus::CANCELLED)->count(),
+                'deleted' => Order::onlyTrashed()->count(),
             ],
-            'total_revenue' => Invoice::where('status', InvoiceStatus::PAID)->sum('total_price'),
+            'total_revenue' => Invoice::withTrashed()->where('status', InvoiceStatus::PAID)->sum('total_price'),
             'total_users' => [
-                'total' => User::where('role', UserRole::CUSTOMER)->count(),
-                'pharmacists' => User::where('role', UserRole::PHARMACIST)->count(),
-                'customers' => User::where('role', UserRole::CUSTOMER)->count(),
+                'total' => User::withTrashed()->where('role', UserRole::CUSTOMER)->count(),
+                'pharmacists' => User::withTrashed()->where('role', UserRole::PHARMACIST)->count(),
+                'customers' => User::withTrashed()->where('role', UserRole::CUSTOMER)->count(),
+                'deleted' => User::onlyTrashed()->count(),
             ],
             'total_medicines' => [
-                'total' => Medicine::count(),
-                'in_stock' => Medicine::where('variants.stock_status', MedicineStatus::IN_STOCK)->count(),
-                'out_of_stock' => Medicine::where('variants.stock_status', MedicineStatus::OUT_OF_STOCK)->count(),
+                'total' => Medicine::withTrashed()->count(),
+                'in_stock' => Medicine::withTrashed()->where('variants.stock_status', MedicineStatus::IN_STOCK)->count(),
+                'out_of_stock' => Medicine::withTrashed()->where('variants.stock_status', MedicineStatus::OUT_OF_STOCK)->count(),
+                'deleted' => Medicine::onlyTrashed()->count(),
             ],
         ];
         $todayStats = [
-            'orders_today' => Order::whereDate('created_at', $today)->count(),
-            'revenue_today' => Invoice::where('status', InvoiceStatus::PAID)
+            'orders_today' => Order::withTrashed()->whereDate('created_at', $today)->count(),
+            'revenue_today' => Invoice::withTrashed()->where('status', InvoiceStatus::PAID)
                 ->whereDate('created_at', $today)->sum('total_price'),
-            'new_customers' => User::where('role', UserRole::CUSTOMER)
-                ->whereDate('created_at', $today)->count()
+            'new_customers' => User::withTrashed()->where('role', UserRole::CUSTOMER)
+                ->whereDate('created_at', $today)->count(),
+            'deleted_today' => [
+                'orders' => Order::onlyTrashed()->whereDate('deleted_at', $today)->count(),
+                'users' => User::onlyTrashed()->whereDate('deleted_at', $today)->count(),
+                'medicines' => Medicine::onlyTrashed()->whereDate('deleted_at', $today)->count(),
+            ]
         ];
         return $this->json([
             'overview' => $overview,

@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+    
     protected $connection = 'mongodb';
     protected $collection = 'invoices';
     protected $fillable = [
@@ -20,6 +22,7 @@ class Invoice extends Model
         'issued_at',
         'status',
         'created_at',
+        'deleted_at',
     ];
 
     public function order()

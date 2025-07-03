@@ -6,8 +6,8 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Auth\UserAuthenticatable as Authenticatable;;
-
+use App\Auth\UserAuthenticatable as Authenticatable;
+use MongoDB\Laravel\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $connection = 'mongodb';
     protected $collection = 'users';
@@ -38,6 +38,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'password_reset_token',
         'password_reset_token_expires_at',
         'created_at',
+        'deleted_at',
     ];
 
     protected $hidden = [
