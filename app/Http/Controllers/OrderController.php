@@ -428,6 +428,7 @@ class OrderController extends Controller
         $sortField = request()->input('sort_field', 'created_at');
         $sortOrder = request()->input('sort_order', 'desc');
         $search = request()->input('s', '');
+        $status = request()->input('status', '');
         $allowedSortFields = ['created_at', 'total_price', 'status', 'user_id', 'payment_method', 'shipping_fee', 'sub_total', 'total_price', '_id'];
         if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
         $query = Order::query();
@@ -455,6 +456,7 @@ class OrderController extends Controller
                 }
             });
         }
+        if ($status) $query->where('status', $status);
         $orders = $query->orderBy($sortField, $sortOrder)->paginate($perPage);
         $orders->map(function ($order) {
             $user = User::find($order->user_id);
