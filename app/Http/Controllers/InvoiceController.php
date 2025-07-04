@@ -454,6 +454,7 @@ class InvoiceController extends Controller
         $sortField = $request->input('sort_by', 'created_at');
         $sortOrder = $request->input('sort_order', 'desc');
         $search = $request->input('s', '');
+        $status = $request->input('status', '');
         $allowedSortFields = ['invoice_number', 'status', 'created_at', 'updated_at'];
         if (!in_array($sortField, $allowedSortFields)) $sortField = 'created_at';
         $query = Invoice::query();
@@ -463,6 +464,7 @@ class InvoiceController extends Controller
                     ->orWhere('status', 'like', "%{$search}%");
             });
         }
+        if ($status) $query->where('status', $status);
         $invoices = $query->orderBy($sortField, $sortOrder === 'asc' ? 'asc' : 'desc')->paginate($perPage);
         return $this->json($invoices, 'Lấy danh sách hóa đơn thành công', 200);
     }
