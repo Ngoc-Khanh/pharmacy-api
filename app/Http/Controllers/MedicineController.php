@@ -8,6 +8,7 @@ use App\Utils\ImageUtils;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Requests\MedicineRequest;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Post;
@@ -611,5 +612,25 @@ class MedicineController extends Controller
         } catch (\Exception $e) {
             return $this->fail(null, 'Lỗi hệ thống khi tải ảnh: ' . $e->getMessage(), 500);
         }
+    }
+
+    #[Delete(uri: '/bulk-delete', name: 'admin.medicines.bulk-delete')]
+    public function bulkDeleteMedicines(Request $request) {
+        $idsString = $request->query('ids');
+        if (empty($idsString)) return $this->json([], "Danh sách thuốc không tồn tại", 404);
+        $ids = explode(',', $idsString);
+        $ids = array_filter($ids);
+        if (empty($ids)) return $this->json([], "Danh sách thuốc không tồn tại", 404);
+        $medicines = Medicine::whereIn('id', $ids)->get();
+        $deletedCount = $medicines->count();
+        foreach ($medicines as $medicine) {
+            try {
+                $this->embeddingService->deleteMedicineEmbedding($medicine->id);
+            } catch (\Exception $e) {
+                Log::warning("[MedicineController] Failed to delete embedding for medicine ID {$medicine->id}: " . $e->getMessage());
+            }
+        }
+        Medicine::whereIn('id', $ids)->delete();
+        return $this->json(['deletedCount' => $deletedCount], 'Đã xóa tất cả thuốc thành công', 200);
     }
 }
